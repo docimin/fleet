@@ -46,6 +46,7 @@ metadata:
   annotations:
     kubernetes.io/ingress.class: "nginx" # Adjust this if you use a different ingress controller
     nginx.ingress.kubernetes.io/rewrite-target: /
+    cert-manager.io/cluster-issuer: "letsencrypt-prod" # Replace with your cert-manager issuer
 spec:
   rules:
     - host: fayevr.dev # Replace with your domain name
@@ -55,6 +56,10 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: fayevr-dev-service
+                name: fayevr-dev-prod-service
                 port:
                   number: 80
+  tls:
+    - hosts:
+        - fayevr.dev # Replace with your domain name
+      secretName: fayevr-dev-tls # Name of the secret to store the TLS certificate
