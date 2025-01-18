@@ -3,8 +3,10 @@ kind: Deployment
 metadata:
   name: fayevr-dev-prod
   namespace: default
+  labels:
+    redeploy: true
 spec:
-  replicas: 2
+  replicas: 1 # Adjust based on your scaling needs
   selector:
     matchLabels:
       app: fayevr-dev-prod
@@ -15,7 +17,7 @@ spec:
     spec:
       containers:
         - name: fayevr-dev-prod-container
-          image: harbor.fayevr.dev/fleet/fayevr.dev:latest
+          image: harbor.fayevr.dev/fleet/fayevr.dev:latest # Replace with your main image tag
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 3000
@@ -34,4 +36,25 @@ spec:
     - protocol: TCP
       port: 80
       targetPort: 3000
-  type: LoadBalancer
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: fayevr-dev-ingress
+  namespace: default
+  annotations:
+    kubernetes.io/ingress.class: "nginx" # Adjust this if you use a different ingress controller
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+    - host: fayevr.dev # Replace with your domain name
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: fayevr-dev-service
+                port:
+                  number: 80
