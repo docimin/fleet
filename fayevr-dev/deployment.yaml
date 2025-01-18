@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fayevr-dev-prod
+  namespace: default
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: fayevr-dev-prod
+  template:
+    metadata:
+      labels:
+        app: fayevr-dev-prod
+    spec:
+      containers:
+        - name: fayevr-dev-prod-container
+          image: harbor.fayevr.dev/fleet/fayevr.dev:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 3000
+      imagePullSecrets:
+        - name: harbor-secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fayevr-dev-prod-service
+  namespace: default
+spec:
+  selector:
+    app: fayevr-dev-prod
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 3000
+  type: LoadBalancer
