@@ -41,7 +41,3 @@ next-env.d.ts
 
 # Cloudflare Wrangler
 .wrangler
-
-# Sentry Config File
-.sentryclirc
-.env.sentry-build-plugin
