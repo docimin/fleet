@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: fayevr-dev-prod-container
-          image: harbor.fayevr.dev/fleet/fayevr.dev:latest # Replace with your main image tag
+          image: harbor.fayevr.dev/fleet/fayevr.dev:0.2.0
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 3000
