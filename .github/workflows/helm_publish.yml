@@ -23,10 +23,12 @@ jobs:
       - name: Enable Helm OCI support
         run: echo "export HELM_EXPERIMENTAL_OCI=1" >> $GITHUB_ENV
 
-      - name: Helm Login to Harbor
-        run: |
-          echo "${{ secrets.HARBOR_PASSWORD }}" | helm registry login harbor.fayevr.dev \
-            --username ${{ secrets.HARBOR_USERNAME }} --password-stdin
+      - name: Log in to Harbor Registry
+        uses: docker/login-action@v3
+        with:
+          registry: harbor.fayevr.dev
+          username: ${{ secrets.HARBOR_USERNAME }}
+          password: ${{ secrets.HARBOR_PASSWORD }}
 
       - name: Find and Package All Helm Charts
         run: |
