@@ -1,0 +1,43 @@
+name: Publish All Helm Charts to Harbor
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '**/Chart.yaml'  # Trigger only when Helm charts change
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: latest
+
+      - name: Enable Helm OCI support
+        run: echo "export HELM_EXPERIMENTAL_OCI=1" >> $GITHUB_ENV
+
+      - name: Helm Login to Harbor
+        run: |
+          echo "${{ secrets.HARBOR_PASSWORD }}" | helm registry login harbor.fayevr.dev \
+            --username ${{ secrets.HARBOR_USERNAME }} --password-stdin
+
+      - name: Find and Package All Helm Charts
+        run: |
+          for chart in $(find . -name 'Chart.yaml' -exec dirname {} \;); do
+            echo "Packaging chart in $chart..."
+            helm package "$chart" --destination .
+          done
+
+      - name: Push Helm Charts to Harbor
+        run: |
+          for chart in *.tgz; do
+            echo "Pushing $chart..."
+            helm push "$chart" oci://harbor.fayevr.dev/helm
+          done

@@ -1,0 +1,39 @@
+replicaCount: 1
+
+name: fayevr-dev
+
+image:
+  repository: harbor.fayevr.dev/fleet/fayevr.dev
+  tag: "0.2.0"
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: "/"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+  hosts:
+    - host: fayevr.dev
+      paths:
+        - path: "/"
+          pathType: Prefix
+  tls:
+    - hosts:
+        - fayevr.dev
+      secretName: fayevr-dev-tls
+
+secrets:
+  name: fayevr-dev-variables
+  imagePullSecrets:
+    - name: harbor-secret
+
+resources:
+  limits:
+    memory: "512Mi"
+  requests:
+    memory: "256Mi"
