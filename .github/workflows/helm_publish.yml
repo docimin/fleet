@@ -4,8 +4,8 @@ on:
   push:
     branches:
       - main
-    #paths:
-    #  - '**/Chart.yaml'  # Trigger only when Helm charts change
+    paths:
+      - '**/Chart.yaml'  # Trigger only when Helm charts change
 
 jobs:
   publish:
