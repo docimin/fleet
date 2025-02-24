@@ -31,6 +31,7 @@ secrets:
   name: fayevr-dev-variables
   imagePullSecrets:
     - name: harbor-secret
+      namespace: default
 
 resources:
   limits:

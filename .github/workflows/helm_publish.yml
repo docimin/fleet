@@ -4,8 +4,10 @@ on:
   push:
     branches:
       - main
-    paths:
-      - '**/Chart.yaml'  # Trigger only when Helm charts change
+    paths: # Only run this workflow when changes are made to Helm charts
+      - '**/Chart.yaml'
+      - '**/values.yaml'
+      - '**/templates/*'
 
 jobs:
   publish:
