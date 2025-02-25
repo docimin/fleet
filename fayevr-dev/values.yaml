@@ -28,6 +28,7 @@ ingress:
       secretName: fayevr-dev-tls
 
 secrets:
+  name: fayevr-dev-variables
   imagePullSecrets:
     - name: harbor-secret
 
