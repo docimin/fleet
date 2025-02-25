@@ -4,7 +4,7 @@ name: fayevr-dev
 
 image:
   repository: harbor.fayevr.dev/fleet/fayevr.dev
-  tag: "0.2.2"
+  tag: "0.2.3"
   pullPolicy: IfNotPresent
 
 service:
@@ -28,7 +28,6 @@ ingress:
       secretName: fayevr-dev-tls
 
 secrets:
-  name: fayevr-dev-variables
   imagePullSecrets:
     - name: harbor-secret
 
