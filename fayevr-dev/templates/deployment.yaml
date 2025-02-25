@@ -23,6 +23,15 @@ spec:
               memory: {{ .Values.resources.limits.memory }}
             requests:
               memory: {{ .Values.resources.requests.memory }}
+          livenessProbe:
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 10
       imagePullSecrets:
         {{- range .Values.secrets.imagePullSecrets }}
         - name: {{ .name }}
