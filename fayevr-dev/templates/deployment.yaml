@@ -11,6 +11,8 @@ spec:
     metadata:
       labels:
         app: {{ .Values.name }}
+      annotations:
+        cni.projectcalico.org/ipv4pools: "[\"default-ipv4-ippool\"]"
     spec:
       containers:
         - name: {{ .Values.name }}-container
