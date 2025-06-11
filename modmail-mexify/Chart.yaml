@@ -1,5 +1,5 @@
 apiVersion: v2
 name: mexify-fayevr-dev-app
 description: A Helm chart for deploying mexify.fayevr.dev
-version: 0.1.0
+version: 0.1.1
 type: application

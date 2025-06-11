@@ -5,7 +5,7 @@ name: fyfu-fayevr-dev
 image:
   repository: harbor.fayevr.dev/fleet/modmail-bot
   tag: "fyfu"
-  pullPolicy: IfNotPresent
+  pullPolicy: Always
 
 service:
   type: ClusterIP

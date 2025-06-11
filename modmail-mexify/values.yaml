@@ -5,7 +5,7 @@ name: mexify-fayevr-dev
 image:
   repository: harbor.fayevr.dev/fleet/modmail-bot
   tag: "mexify"
-  pullPolicy: IfNotPresent
+  pullPolicy: Always
 
 service:
   type: ClusterIP
