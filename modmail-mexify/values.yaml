@@ -1,6 +1,6 @@
 replicaCount: 1
 
-name: mexify-fayevr-dev
+name: mexi-fayevr-dev
 
 image:
   repository: harbor.fayevr.dev/fleet/modmail-bot
@@ -18,17 +18,17 @@ ingress:
     nginx.ingress.kubernetes.io/rewrite-target: "/"
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
   hosts:
-    - host: mexify.fayevr.dev
+    - host: mexi.fayevr.dev
       paths:
         - path: "/"
           pathType: Prefix
   tls:
     - hosts:
-        - mexify.fayevr.dev
-      secretName: mexify-fayevr-dev-tls
+        - mexi.fayevr.dev
+      secretName: mexi-fayevr-tls
 
 secrets:
-  name: mexify-fayevr-dev-variables
+  name: mexi-fayevr-variables
   imagePullSecrets:
     - name: harbor-secret
 
