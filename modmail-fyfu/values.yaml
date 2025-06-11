@@ -1,0 +1,41 @@
+replicaCount: 1
+
+name: fyfu-fayevr-dev
+
+image:
+  repository: harbor.fayevr.dev/fleet/modmail-bot
+  tag: "fyfu"
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: "/"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+  hosts:
+    - host: fyfu.fayevr.dev
+      paths:
+        - path: "/"
+          pathType: Prefix
+  tls:
+    - hosts:
+        - fyfu.fayevr.dev
+      secretName: fyfu-fayevr-dev-tls
+
+secrets:
+  name: fyfu-fayevr-dev-variables
+  imagePullSecrets:
+    - name: harbor-secret
+
+resources:
+  limits:
+    memory: "512Mi"
+    cpu: "500m"
+  requests:
+    memory: "256Mi"
+    cpu: "100m"
