@@ -31,7 +31,7 @@ spec:
               memory: {{ .Values.resources.requests.memory }}
           livenessProbe:
             httpGet:
-              path: /api/health
+              path: /
               port: 3000
             initialDelaySeconds: 60
             periodSeconds: 15
@@ -40,7 +40,7 @@ spec:
             successThreshold: 1
           readinessProbe:
             httpGet:
-              path: /api/health
+              path: /
               port: 3000
             initialDelaySeconds: 30
             periodSeconds: 15

@@ -1,0 +1,41 @@
+replicaCount: 1
+
+name: headpat-place
+
+image:
+  repository: harbor.fayevr.dev/fleet/headpat-place
+  tag: "0.1.0"
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: "/"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+  hosts:
+    - host: headpat.place
+      paths:
+        - path: "/"
+          pathType: Prefix
+  tls:
+    - hosts:
+        - headpat.place
+      secretName: headpat-place-tls
+
+secrets:
+  name: headpat-place-variables
+  imagePullSecrets:
+    - name: harbor-secret
+
+resources:
+  limits:
+    memory: "512Mi"
+    cpu: "500m"
+  requests:
+    memory: "256Mi"
+    cpu: "100m"
