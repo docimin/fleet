@@ -4,8 +4,8 @@ name: headpat-place
 
 image:
   repository: harbor.fayevr.dev/fleet/headpat-place
-  tag: "0.1.0"
-  pullPolicy: IfNotPresent
+  tag: "latest"
+  pullPolicy: Always
 
 service:
   type: ClusterIP

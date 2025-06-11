@@ -1,9 +1,9 @@
 replicaCount: 1
 
-name: fayevr-dev
+name: headpat-dev
 
 image:
-  repository: harbor.fayevr.dev/fleet/fayevr.dev
+  repository: harbor.fayevr.dev/fleet/headpat-dev
   tag: "latest"
   pullPolicy: Always
 
@@ -18,17 +18,17 @@ ingress:
     nginx.ingress.kubernetes.io/rewrite-target: "/"
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
   hosts:
-    - host: fayevr.dev
+    - host: headpat.dev
       paths:
         - path: "/"
           pathType: Prefix
   tls:
     - hosts:
-        - fayevr.dev
-      secretName: fayevr-dev-tls
+        - headpat.dev
+      secretName: headpat-dev-tls
 
 secrets:
-  name: fayevr-dev-variables
+  name: headpat-dev-variables
   imagePullSecrets:
     - name: harbor-secret
 
