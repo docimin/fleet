@@ -1,0 +1,41 @@
+replicaCount: 1
+
+name: cloudnet-webinterface
+
+image:
+  repository: harbor.fayevr.dev/fleet/cloudnet-webinterface
+  tag: "latest"
+  pullPolicy: Always
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: "/"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+  hosts:
+    - host: cloudnet.fayevr.dev
+      paths:
+        - path: "/"
+          pathType: Prefix
+  tls:
+    - hosts:
+        - cloudnet.fayevr.dev
+      secretName: cloudnet-webinterface-tls
+
+secrets:
+  name: cloudnet-webinterface-variables
+  imagePullSecrets:
+    - name: harbor-secret
+
+resources:
+  limits:
+    memory: "512Mi"
+    cpu: "500m"
+  requests:
+    memory: "256Mi"
+    cpu: "100m"
