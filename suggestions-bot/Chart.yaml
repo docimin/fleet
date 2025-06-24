@@ -1,7 +1,7 @@
 apiVersion: v2
 name: suggestions-bot
 description: A Helm chart for deploying suggestions-bot
-version: 1.0.5
+version: 1.0.6
 type: application
 
 dependencies:

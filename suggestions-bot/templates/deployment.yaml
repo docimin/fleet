@@ -22,7 +22,7 @@ spec:
             - name: HOSTNAME
               value: "0.0.0.0"
             - name: REDIS_HOST
-              value: "{{ .Values.name }}-redis"
+              value: "{{ .Values.name }}-redis-master"
             - name: REDIS_PASSWORD
               valueFrom:
                 secretKeyRef:
