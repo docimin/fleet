@@ -11,22 +11,6 @@ service:
   type: ClusterIP
   port: 80
 
-ingress:
-  enabled: true
-  className: "nginx"
-  annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: "/"
-    cert-manager.io/cluster-issuer: "letsencrypt-prod"
-  hosts:
-    - host: suggestions.fayevr.dev
-      paths:
-        - path: "/"
-          pathType: Prefix
-  tls:
-    - hosts:
-        - suggestions.fayevr.dev
-      secretName: suggestions-bot-tls
-
 secrets:
   name: suggestions-bot-variables
   imagePullSecrets:
