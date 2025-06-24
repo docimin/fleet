@@ -5,9 +5,9 @@ on:
     branches:
       - main
     paths: # Only run this workflow when changes are made to Helm charts
-      - '**/Chart.yaml'
-      - '**/values.yaml'
-      - '**/templates/*'
+      - "**/Chart.yaml"
+      - "**/values.yaml"
+      - "**/templates/*"
 
 jobs:
   publish:
@@ -24,6 +24,15 @@ jobs:
 
       - name: Enable Helm OCI support
         run: echo "export HELM_EXPERIMENTAL_OCI=1" >> $GITHUB_ENV
+
+      - name: Update Helm Dependencies
+        run: |
+          for chart in $(find . -name 'Chart.yaml' -exec dirname {} \;); do
+            echo "Updating dependencies for chart in $chart..."
+            cd "$chart"
+            helm dependency update
+            cd - > /dev/null
+          done
 
       - name: Log in to Harbor Registry
         uses: docker/login-action@v3
