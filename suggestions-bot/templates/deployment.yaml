@@ -36,24 +36,6 @@ spec:
               memory: {{ .Values.resources.limits.memory }}
             requests:
               memory: {{ .Values.resources.requests.memory }}
-          livenessProbe:
-            httpGet:
-              path: /
-              port: 3000
-            initialDelaySeconds: 60
-            periodSeconds: 15
-            timeoutSeconds: 5
-            failureThreshold: 3
-            successThreshold: 1
-          readinessProbe:
-            httpGet:
-              path: /
-              port: 3000
-            initialDelaySeconds: 30
-            periodSeconds: 15
-            timeoutSeconds: 5
-            failureThreshold: 3
-            successThreshold: 1
       imagePullSecrets:
         {{- range .Values.secrets.imagePullSecrets }}
         - name: {{ .name }}
