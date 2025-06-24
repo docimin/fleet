@@ -4,7 +4,7 @@ name: suggestions-bot
 
 image:
   repository: harbor.fayevr.dev/fleet/suggestions-bot
-  tag: "1.0.0"
+  tag: "latest"
   pullPolicy: Always
 
 service:
