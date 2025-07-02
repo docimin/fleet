@@ -12,6 +12,10 @@ spec:
       labels:
         app: {{ .Values.name }}
     spec:
+      initContainers:
+        - name: wait-for-redis
+          image: busybox
+          command: ['sh', '-c', 'until nc -z -w 2 {{ .Values.name }}-redis-master 6379; do echo waiting for redis; sleep 2; done;']
       containers:
         - name: {{ .Values.name }}-container
           image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
