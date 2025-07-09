@@ -22,9 +22,14 @@ ingress:
       paths:
         - path: "/"
           pathType: Prefix
+    - host: www.headpat.dev
+      paths:
+        - path: "/"
+          pathType: Prefix
   tls:
     - hosts:
         - headpat.dev
+        - www.headpat.dev
       secretName: headpat-dev-tls
 
 secrets:

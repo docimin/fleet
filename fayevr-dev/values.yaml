@@ -22,11 +22,15 @@ ingress:
       paths:
         - path: "/"
           pathType: Prefix
+    - host: www.fayevr.dev
+      paths:
+        - path: "/"
+          pathType: Prefix
   tls:
     - hosts:
         - fayevr.dev
+        - www.fayevr.dev
       secretName: fayevr-dev-tls
-
 secrets:
   name: fayevr-dev-variables
   imagePullSecrets:
