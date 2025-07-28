@@ -21,6 +21,10 @@ spec:
           env:
             - name: HOSTNAME
               value: "0.0.0.0"
+            {{- if .Values.postgresql.enabled }}
+            - name: DATABASE_URL
+              value: {{ .Values.database.url | quote }}
+            {{- end }}
           envFrom:
             - secretRef:
                 name: {{ .Values.secrets.name }}

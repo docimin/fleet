@@ -27,6 +27,35 @@ ingress:
         - preview.phc.fayevr.dev
       secretName: phc-website-tls
 
+# PostgreSQL Database Configuration
+postgresql:
+  enabled: true
+  image:
+    repository: postgres
+    tag: "15-alpine"
+  database:
+    name: phc
+    user: postgres
+    password: { { randAlphaNum 16 } }
+  service:
+    type: ClusterIP
+    port: 5432
+  persistence:
+    enabled: true
+    size: 8Gi
+    storageClass: ""
+  resources:
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+    requests:
+      memory: "256Mi"
+      cpu: "100m"
+
+# Database URL for the application
+database:
+  url: "postgresql://postgres:{{ .Values.postgresql.database.password }}@{{ .Values.name }}-postgres:5432/{{ .Values.postgresql.database.name }}"
+
 secrets:
   name: phc-website-variables
   imagePullSecrets:
