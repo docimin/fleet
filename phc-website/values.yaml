@@ -4,7 +4,7 @@ name: phc-website
 
 image:
   repository: harbor.fayevr.dev/fleet/phc-website
-  tag: "0.1.0"
+  tag: "0.1.1"
   pullPolicy: Always
 
 service:
