@@ -36,7 +36,6 @@ postgresql:
   database:
     name: phc
     user: postgres
-    password: { { randAlphaNum 16 } }
   service:
     type: ClusterIP
     port: 5432

@@ -22,8 +22,13 @@ spec:
             - name: HOSTNAME
               value: "0.0.0.0"
             {{- if .Values.postgresql.enabled }}
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.name }}-postgres-secret
+                  key: password
             - name: DATABASE_URL
-              value: {{ .Values.database.url | quote }}
+              value: "postgresql://{{ .Values.postgresql.database.user }}:$(POSTGRES_PASSWORD)@{{ .Values.name }}-postgres:5432/{{ .Values.postgresql.database.name }}"
             {{- end }}
           envFrom:
             - secretRef:
