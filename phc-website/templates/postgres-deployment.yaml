@@ -1,0 +1,76 @@
+{{- if .Values.postgresql.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.name }}-postgres
+  labels:
+    app: {{ .Values.name }}-postgres
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Values.name }}-postgres
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.name }}-postgres
+    spec:
+      containers:
+        - name: postgres
+          image: {{ .Values.postgresql.image.repository }}:{{ .Values.postgresql.image.tag }}
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_DB
+              value: {{ .Values.postgresql.database.name }}
+            - name: POSTGRES_USER
+              value: {{ .Values.postgresql.database.user }}
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.name }}-postgres-secret
+                  key: password
+          volumeMounts:
+            - name: postgres-storage
+              mountPath: /var/lib/postgresql/data
+              subPath: postgres
+          resources:
+            limits:
+              memory: {{ .Values.postgresql.resources.limits.memory }}
+              cpu: {{ .Values.postgresql.resources.limits.cpu }}
+            requests:
+              memory: {{ .Values.postgresql.resources.requests.memory }}
+              cpu: {{ .Values.postgresql.resources.requests.cpu }}
+          livenessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -U
+                - {{ .Values.postgresql.database.user }}
+                - -d
+                - {{ .Values.postgresql.database.name }}
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -U
+                - {{ .Values.postgresql.database.user }}
+                - -d
+                - {{ .Values.postgresql.database.name }}
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+      volumes:
+        - name: postgres-storage
+          {{- if .Values.postgresql.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ .Values.name }}-postgres-pvc
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
+{{- end }} 
