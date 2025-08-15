@@ -1,0 +1,46 @@
+replicaCount: 1
+
+name: qr-generator-dev
+
+image:
+  repository: harbor.fayevr.dev/fleet/qr-generator-dev
+  tag: "latest"
+  pullPolicy: Always
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: "/"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+  hosts:
+    - host: qr-generator-dev.fayevr.dev
+      paths:
+        - path: "/"
+          pathType: Prefix
+    - host: www.qr-generator-dev.fayevr.dev
+      paths:
+        - path: "/"
+          pathType: Prefix
+  tls:
+    - hosts:
+        - qr-generator-dev.fayevr.dev
+        - www.qr-generator-dev.fayevr.dev
+      secretName: qr-generator-dev-tls
+
+secrets:
+  name: qr-generator-dev-variables
+  imagePullSecrets:
+    - name: harbor-secret
+
+resources:
+  limits:
+    memory: "1Gi"
+    cpu: "1"
+  requests:
+    memory: "512Mi"
+    cpu: "250m"
