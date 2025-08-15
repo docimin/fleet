@@ -32,11 +32,6 @@ ingress:
         - www.qr-generator-dev.fayevr.dev
       secretName: qr-generator-dev-tls
 
-secrets:
-  name: qr-generator-dev-variables
-  imagePullSecrets:
-    - name: harbor-secret
-
 resources:
   limits:
     memory: "1Gi"
