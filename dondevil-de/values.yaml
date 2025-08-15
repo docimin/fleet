@@ -1,0 +1,46 @@
+replicaCount: 1
+
+name: dondevil-de
+
+image:
+  repository: harbor.fayevr.dev/fleet/dondevil-de
+  tag: "latest"
+  pullPolicy: Always
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: "/"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+  hosts:
+    - host: dondevil.de
+      paths:
+        - path: "/"
+          pathType: Prefix
+    - host: www.dondevil.de
+      paths:
+        - path: "/"
+          pathType: Prefix
+  tls:
+    - hosts:
+        - dondevil.de
+        - www.dondevil.de
+      secretName: dondevil-de-tls
+
+secrets:
+  name: dondevil-de-variables
+  imagePullSecrets:
+    - name: harbor-secret
+
+resources:
+  limits:
+    memory: "512Mi"
+    cpu: "500m"
+  requests:
+    memory: "256Mi"
+    cpu: "100m"
