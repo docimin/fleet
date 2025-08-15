@@ -24,6 +24,26 @@ resources:
     memory: "256Mi"
     cpu: "100m"
 
+# Removed podAnnotations since Discord bots don't need Prometheus scraping
+
+probes:
+  liveness:
+    initialDelaySeconds: 60
+    periodSeconds: 15
+    timeoutSeconds: 5
+    failureThreshold: 3
+    successThreshold: 1
+  readiness:
+    initialDelaySeconds: 30
+    periodSeconds: 15
+    timeoutSeconds: 5
+    failureThreshold: 3
+    successThreshold: 1
+
+pdb:
+  enabled: false
+  minAvailable: 1
+
 # Redis configuration
 redis:
   enabled: true
