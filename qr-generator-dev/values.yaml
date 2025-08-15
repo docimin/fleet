@@ -18,18 +18,18 @@ ingress:
     nginx.ingress.kubernetes.io/rewrite-target: "/"
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
   hosts:
-    - host: qr-generator-dev
+    - host: qr-generator.dev
       paths:
         - path: "/"
           pathType: Prefix
-    - host: www.qr-generator-dev
+    - host: www.qr-generator.dev
       paths:
         - path: "/"
           pathType: Prefix
   tls:
     - hosts:
-        - qr-generator-dev
-        - www.qr-generator-dev
+        - qr-generator.dev
+        - www.qr-generator.dev
       secretName: qr-generator-dev-tls
 
 secrets:
