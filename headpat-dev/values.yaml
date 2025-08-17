@@ -17,6 +17,9 @@ ingress:
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: "/"
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/ssl-passthrough: "false"
   hosts:
     - host: headpat.dev
       paths:
@@ -30,7 +33,7 @@ ingress:
     - hosts:
         - headpat.dev
         - www.headpat.dev
-      secretName: headpat-dev-tls
+      secretName: headpat-dev-tls-secret
 
 secrets:
   name: headpat-dev-variables

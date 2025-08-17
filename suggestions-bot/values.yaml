@@ -24,8 +24,6 @@ resources:
     memory: "256Mi"
     cpu: "100m"
 
-# Removed podAnnotations since Discord bots don't need Prometheus scraping
-
 probes:
   liveness:
     initialDelaySeconds: 60
