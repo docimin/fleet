@@ -37,11 +37,11 @@ secrets:
 
 resources:
   limits:
-    memory: "512Mi"
-    cpu: "500m"
+    memory: "1Gi"
+    cpu: "2"
   requests:
-    memory: "256Mi"
-    cpu: "100m"
+    memory: "512Mi"
+    cpu: "250m"
 
 podAnnotations:
   prometheus.io/scrape: "true"

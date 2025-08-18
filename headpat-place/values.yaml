@@ -43,7 +43,7 @@ secrets:
 resources:
   limits:
     memory: "1Gi"
-    cpu: "1"
+    cpu: "4"
   requests:
     memory: "512Mi"
     cpu: "250m"
