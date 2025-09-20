@@ -46,24 +46,24 @@ spec:
             requests:
               memory: {{ .Values.resources.requests.memory }}
               cpu: {{ .Values.resources.requests.cpu }}
-          livenessProbe:
-            httpGet:
-              path: {{ .Values.probes.liveness.path | default "/" }}
-              port: 3000
-            initialDelaySeconds: {{ .Values.probes.liveness.initialDelaySeconds | default 60 }}
-            periodSeconds: {{ .Values.probes.liveness.periodSeconds | default 15 }}
-            timeoutSeconds: {{ .Values.probes.liveness.timeoutSeconds | default 5 }}
-            failureThreshold: {{ .Values.probes.liveness.failureThreshold | default 3 }}
-            successThreshold: {{ .Values.probes.liveness.successThreshold | default 1 }}
-          readinessProbe:
-            httpGet:
-              path: {{ .Values.probes.readiness.path | default "/" }}
-              port: 3000
-            initialDelaySeconds: {{ .Values.probes.readiness.initialDelaySeconds | default 30 }}
-            periodSeconds: {{ .Values.probes.readiness.periodSeconds | default 15 }}
-            timeoutSeconds: {{ .Values.probes.readiness.timeoutSeconds | default 5 }}
-            failureThreshold: {{ .Values.probes.readiness.failureThreshold | default 3 }}
-            successThreshold: {{ .Values.probes.readiness.successThreshold | default 1 }}
+          #livenessProbe:
+          #  httpGet:
+          #    path: {{ .Values.probes.liveness.path | default "/" }}
+          #    port: 3000
+          #  initialDelaySeconds: {{ .Values.probes.liveness.initialDelaySeconds | default 60 }}
+          #  periodSeconds: {{ .Values.probes.liveness.periodSeconds | default 15 }}
+          #  timeoutSeconds: {{ .Values.probes.liveness.timeoutSeconds | default 5 }}
+          #  failureThreshold: {{ .Values.probes.liveness.failureThreshold | default 3 }}
+          #  successThreshold: {{ .Values.probes.liveness.successThreshold | default 1 }}
+          #readinessProbe:
+          #  httpGet:
+          #    path: {{ .Values.probes.readiness.path | default "/" }}
+          #    port: 3000
+          #  initialDelaySeconds: {{ .Values.probes.readiness.initialDelaySeconds | default 30 }}
+          #  periodSeconds: {{ .Values.probes.readiness.periodSeconds | default 15 }}
+          #  timeoutSeconds: {{ .Values.probes.readiness.timeoutSeconds | default 5 }}
+          #  failureThreshold: {{ .Values.probes.readiness.failureThreshold | default 3 }}
+          #  successThreshold: {{ .Values.probes.readiness.successThreshold | default 1 }}
       imagePullSecrets:
         {{- range .Values.secrets.imagePullSecrets }}
         - name: {{ .name }}
