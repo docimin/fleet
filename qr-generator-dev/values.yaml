@@ -36,6 +36,7 @@ ingress:
       secretName: qr-generator-dev-tls-secret
 
 secrets:
+  name: qr-generator-dev-secrets
   imagePullSecrets:
     - name: harbor-secret
 
