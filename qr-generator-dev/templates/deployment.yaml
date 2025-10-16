@@ -18,9 +18,8 @@ spec:
     spec:
       securityContext:
         runAsNonRoot: true
-        runAsUser: 1000
-        runAsGroup: 1000
-        fsGroup: 1000
+        runAsUser: 1001
+        fsGroup: 1001
       containers:
         - name: {{ .Values.name }}-container
           securityContext:
@@ -36,6 +35,14 @@ spec:
           env:
             - name: HOSTNAME
               value: "0.0.0.0"
+          envFrom:
+            - secretRef:
+                name: {{ .Values.secrets.name }}
+          volumeMounts:
+            - name: nextjs-cache
+              mountPath: /app/apps/db_web/.next/cache
+            - name: tmp
+              mountPath: /tmp
           resources:
             limits:
               memory: {{ .Values.resources.limits.memory }}
@@ -43,24 +50,29 @@ spec:
             requests:
               memory: {{ .Values.resources.requests.memory }}
               cpu: {{ .Values.resources.requests.cpu }}
-          livenessProbe:
-            httpGet:
-              path: {{ .Values.probes.liveness.path | default "/" }}
-              port: 3000
-            initialDelaySeconds: {{ .Values.probes.liveness.initialDelaySeconds | default 60 }}
-            periodSeconds: {{ .Values.probes.liveness.periodSeconds | default 15 }}
-            timeoutSeconds: {{ .Values.probes.liveness.timeoutSeconds | default 5 }}
-            failureThreshold: {{ .Values.probes.liveness.failureThreshold | default 3 }}
-            successThreshold: {{ .Values.probes.liveness.successThreshold | default 1 }}
-          readinessProbe:
-            httpGet:
-              path: {{ .Values.probes.readiness.path | default "/" }}
-              port: 3000
-            initialDelaySeconds: {{ .Values.probes.readiness.initialDelaySeconds | default 30 }}
-            periodSeconds: {{ .Values.probes.readiness.periodSeconds | default 15 }}
-            timeoutSeconds: {{ .Values.probes.readiness.timeoutSeconds | default 5 }}
-            failureThreshold: {{ .Values.probes.readiness.failureThreshold | default 3 }}
-            successThreshold: {{ .Values.probes.readiness.successThreshold | default 1 }}
+          #livenessProbe:
+          #  httpGet:
+          #    path: {{ .Values.probes.liveness.path | default "/" }}
+          #    port: 3000
+          #  initialDelaySeconds: {{ .Values.probes.liveness.initialDelaySeconds | default 60 }}
+          #  periodSeconds: {{ .Values.probes.liveness.periodSeconds | default 15 }}
+          #  timeoutSeconds: {{ .Values.probes.liveness.timeoutSeconds | default 5 }}
+          #  failureThreshold: {{ .Values.probes.liveness.failureThreshold | default 3 }}
+          #  successThreshold: {{ .Values.probes.liveness.successThreshold | default 1 }}
+          #readinessProbe:
+          #  httpGet:
+          #    path: {{ .Values.probes.readiness.path | default "/" }}
+          #    port: 3000
+          #  initialDelaySeconds: {{ .Values.probes.readiness.initialDelaySeconds | default 30 }}
+          #  periodSeconds: {{ .Values.probes.readiness.periodSeconds | default 15 }}
+          #  timeoutSeconds: {{ .Values.probes.readiness.timeoutSeconds | default 5 }}
+          #  failureThreshold: {{ .Values.probes.readiness.failureThreshold | default 3 }}
+          #  successThreshold: {{ .Values.probes.readiness.successThreshold | default 1 }}
+      volumes:
+        - name: nextjs-cache
+          emptyDir: {}
+        - name: tmp
+          emptyDir: {}
       imagePullSecrets:
         {{- range .Values.secrets.imagePullSecrets }}
         - name: {{ .name }}
