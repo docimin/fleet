@@ -35,9 +35,6 @@ spec:
           env:
             - name: HOSTNAME
               value: "0.0.0.0"
-          envFrom:
-            - secretRef:
-                name: {{ .Values.secrets.name }}
           volumeMounts:
             - name: nextjs-cache
               mountPath: /app/apps/db_web/.next/cache
