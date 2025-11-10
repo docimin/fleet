@@ -7,4 +7,4 @@ type: application
 dependencies:
   - name: redis
     version: 21.2.5
-    repository: oci://registry-1.docker.io/bitnamilegacy/redis
+    repository: oci://registry-1.docker.io/bitnamilegacy
