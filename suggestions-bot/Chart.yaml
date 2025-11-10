@@ -1,10 +1,10 @@
 apiVersion: v2
 name: suggestions-bot
 description: A Helm chart for deploying suggestions-bot
-version: 1.1.1
+version: 1.1.2
 type: application
 
 dependencies:
   - name: redis
     version: 21.2.5
-    repository: https://charts.bitnami.com/bitnami
+    repository: https://github.com/bitnami/charts/tree/main/bitnami/redis
