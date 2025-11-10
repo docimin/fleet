@@ -1,0 +1,23 @@
+namespace: headpat-space
+targetCustomizations:
+  - name: prod
+    helm:
+      values:
+        replicaCount: 3
+      releaseName: headpat-space
+      chart: .
+      valuesFiles:
+        - values.yaml
+      clusterSelector:
+        matchLabels:
+          env: prod
+
+  - name: dev
+    helm:
+      releaseName: headpat-space
+      chart: .
+      valuesFiles:
+        - values.yaml
+      clusterSelector:
+        matchLabels:
+          env: dev
