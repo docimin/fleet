@@ -74,6 +74,12 @@ spec:
               mountPath: /var/log
             - name: tmp
               mountPath: /tmp
+            - name: mysql-config
+              mountPath: /etc/mysql/conf.d/my.cnf
+              subPath: my.cnf
+            - name: mysql-config-home
+              mountPath: /root/.my.cnf
+              subPath: my.cnf
           resources:
             limits:
               memory: {{ .Values.resources.limits.memory }}
@@ -108,6 +114,12 @@ spec:
           emptyDir: {}
         - name: tmp
           emptyDir: {}
+        - name: mysql-config
+          configMap:
+            name: {{ .Values.name }}-mysql-config
+        - name: mysql-config-home
+          configMap:
+            name: {{ .Values.name }}-mysql-config
       {{- if .Values.secrets.imagePullSecrets }}
       imagePullSecrets:
         {{- range .Values.secrets.imagePullSecrets }}
