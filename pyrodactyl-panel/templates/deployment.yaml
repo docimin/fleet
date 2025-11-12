@@ -47,6 +47,18 @@ spec:
                   key: MYSQL_PASSWORD
             - name: DB_SSL_ENABLED
               value: "false"
+            - name: DB_SSL_CA
+              value: ""
+            - name: DB_SSL_CERT
+              value: ""
+            - name: DB_SSL_KEY
+              value: ""
+            - name: MYSQL_SSL_CA
+              value: ""
+            - name: MYSQL_SSL_CERT
+              value: ""
+            - name: MYSQL_SSL_KEY
+              value: ""
             {{- end }}
           envFrom:
             - secretRef:
@@ -56,6 +68,8 @@ spec:
               mountPath: /app/var
             - name: app-storage
               mountPath: /app/storage
+            - name: app-storage-logs
+              mountPath: /app/storage/logs
             - name: var-log
               mountPath: /var/log
             - name: tmp
@@ -87,6 +101,8 @@ spec:
         - name: app-var
           emptyDir: {}
         - name: app-storage
+          emptyDir: {}
+        - name: app-storage-logs
           emptyDir: {}
         - name: var-log
           emptyDir: {}
