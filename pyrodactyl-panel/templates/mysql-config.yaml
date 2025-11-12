@@ -5,6 +5,5 @@ metadata:
 data:
   my.cnf: |
     [client]
-    ssl-mode=DISABLED
-    skip-ssl
+    ssl=0
 
