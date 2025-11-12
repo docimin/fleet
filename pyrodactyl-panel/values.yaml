@@ -67,8 +67,8 @@ probes:
     failureThreshold: 3
   readiness:
     path: "/"
-    initialDelaySeconds: 30
-    periodSeconds: 15
+    initialDelaySeconds: 60
+    periodSeconds: 10
     timeoutSeconds: 5
     failureThreshold: 3
 

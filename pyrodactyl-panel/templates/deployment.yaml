@@ -95,14 +95,15 @@ spec:
             periodSeconds: {{ .Values.probes.liveness.periodSeconds | default 15 }}
             timeoutSeconds: {{ .Values.probes.liveness.timeoutSeconds | default 5 }}
             failureThreshold: {{ .Values.probes.liveness.failureThreshold | default 3 }}
-          readinessProbe:
-            httpGet:
-              path: {{ .Values.probes.readiness.path | default "/" }}
-              port: 80
-            initialDelaySeconds: {{ .Values.probes.readiness.initialDelaySeconds | default 30 }}
-            periodSeconds: {{ .Values.probes.readiness.periodSeconds | default 15 }}
-            timeoutSeconds: {{ .Values.probes.readiness.timeoutSeconds | default 5 }}
-            failureThreshold: {{ .Values.probes.readiness.failureThreshold | default 3 }}
+          #readinessProbe:
+          #  httpGet:
+          #    path: {{ .Values.probes.readiness.path | default "/" }}
+          #    port: 80
+          #  initialDelaySeconds: {{ .Values.probes.readiness.initialDelaySeconds | default 60 }}
+          #  periodSeconds: {{ .Values.probes.readiness.periodSeconds | default 10 }}
+          #  timeoutSeconds: {{ .Values.probes.readiness.timeoutSeconds | default 5 }}
+          #  failureThreshold: {{ .Values.probes.readiness.failureThreshold | default 3 }}
+          #  successThreshold: 1
       volumes:
         - name: app-var
           emptyDir: {}
