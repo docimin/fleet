@@ -1,0 +1,79 @@
+{{- if .Values.mariadb.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.name }}-mariadb
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Values.name }}-mariadb
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.name }}-mariadb
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999
+        fsGroup: 999
+      containers:
+        - name: mariadb
+          image: {{ .Values.mariadb.image.repository }}:{{ .Values.mariadb.image.tag }}
+          ports:
+            - containerPort: 3306
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.name }}
+                  key: MYSQL_ROOT_PASSWORD
+            - name: MYSQL_DATABASE
+              value: {{ .Values.mariadb.database }}
+            - name: MYSQL_USER
+              value: {{ .Values.mariadb.username }}
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.name }}
+                  key: MYSQL_PASSWORD
+          volumeMounts:
+            - name: mariadb-data
+              mountPath: /var/lib/mysql
+          resources:
+            limits:
+              memory: {{ .Values.mariadb.resources.limits.memory }}
+              cpu: {{ .Values.mariadb.resources.limits.cpu }}
+            requests:
+              memory: {{ .Values.mariadb.resources.requests.memory }}
+              cpu: {{ .Values.mariadb.resources.requests.cpu }}
+          livenessProbe:
+            exec:
+              command:
+                - mysqladmin
+                - ping
+                - -h
+                - localhost
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+          readinessProbe:
+            exec:
+              command:
+                - mysqladmin
+                - ping
+                - -h
+                - localhost
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+      volumes:
+        - name: mariadb-data
+          {{- if .Values.mariadb.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ .Values.name }}-mariadb-pvc
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
+{{- end }}
+

@@ -1,0 +1,74 @@
+replicaCount: 1
+
+name: pyrodactyl-panel
+
+image:
+  repository: ghcr.io/pyrohost/pyrodactyl
+  tag: "latest"
+  pullPolicy: Always
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+  hosts:
+    - host: panel.headpat.space
+      paths:
+        - path: "/"
+          pathType: Prefix
+  tls:
+    - hosts:
+        - panel.headpat.space
+      secretName: pyrodactyl-panel-tls-secret
+
+secrets:
+  name: pyrodactyl-panel-variables
+  imagePullSecrets: []
+
+mariadb:
+  enabled: true
+  image:
+    repository: mariadb
+    tag: "11.3"
+  rootPassword: ""
+  database: pyrodactyl
+  username: pyrodactyl
+  password: ""
+  persistence:
+    enabled: true
+    size: 20Gi
+  resources:
+    limits:
+      memory: "1Gi"
+      cpu: "1"
+    requests:
+      memory: "512Mi"
+      cpu: "250m"
+
+resources:
+  limits:
+    memory: "2Gi"
+    cpu: "2"
+  requests:
+    memory: "1Gi"
+    cpu: "500m"
+
+probes:
+  liveness:
+    path: "/"
+    initialDelaySeconds: 60
+    periodSeconds: 15
+    timeoutSeconds: 5
+    failureThreshold: 3
+  readiness:
+    path: "/"
+    initialDelaySeconds: 30
+    periodSeconds: 15
+    timeoutSeconds: 5
+    failureThreshold: 3
+

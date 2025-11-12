@@ -1,0 +1,15 @@
+{{- if .Values.mariadb.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.name }}-mariadb
+spec:
+  selector:
+    app: {{ .Values.name }}-mariadb
+  ports:
+    - protocol: TCP
+      port: 3306
+      targetPort: 3306
+  type: ClusterIP
+{{- end }}
+

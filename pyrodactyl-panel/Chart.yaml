@@ -1,0 +1,6 @@
+apiVersion: v2
+name: pyrodactyl-panel
+description: A Helm chart for deploying Pyrodactyl panel
+version: 0.1.0
+type: application
+
