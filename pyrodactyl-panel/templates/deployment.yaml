@@ -40,6 +40,11 @@ spec:
               value: {{ .Values.mariadb.username }}
             - name: DB_CONNECTION
               value: "mysql"
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.name }}
+                  key: MYSQL_PASSWORD
             {{- end }}
           envFrom:
             - secretRef:
