@@ -13,9 +13,9 @@ spec:
         app: {{ .Values.name }}
     spec:
       securityContext:
-        runAsNonRoot: true
-        runAsUser: 1000
-        fsGroup: 1000
+        runAsNonRoot: false
+        runAsUser: 0
+        fsGroup: 0
       containers:
         - name: {{ .Values.name }}-container
           securityContext:
@@ -45,6 +45,8 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.secrets.name }}
                   key: MYSQL_PASSWORD
+            - name: DB_SSL_ENABLED
+              value: "false"
             {{- end }}
           envFrom:
             - secretRef:
@@ -54,6 +56,8 @@ spec:
               mountPath: /app/var
             - name: app-storage
               mountPath: /app/storage
+            - name: var-log
+              mountPath: /var/log
             - name: tmp
               mountPath: /tmp
           resources:
@@ -83,6 +87,8 @@ spec:
         - name: app-var
           emptyDir: {}
         - name: app-storage
+          emptyDir: {}
+        - name: var-log
           emptyDir: {}
         - name: tmp
           emptyDir: {}
