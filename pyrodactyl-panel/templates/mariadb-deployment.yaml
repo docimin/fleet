@@ -48,22 +48,16 @@ spec:
               memory: {{ .Values.mariadb.resources.requests.memory }}
               cpu: {{ .Values.mariadb.resources.requests.cpu }}
           livenessProbe:
-            exec:
-              command:
-                - sh
-                - -c
-                - mysqladmin ping -h localhost -u root -p$MYSQL_ROOT_PASSWORD || exit 1
+            tcpSocket:
+              port: 3306
             initialDelaySeconds: 60
             periodSeconds: 10
             timeoutSeconds: 5
             failureThreshold: 3
           readinessProbe:
-            exec:
-              command:
-                - sh
-                - -c
-                - mysqladmin ping -h localhost -u root -p$MYSQL_ROOT_PASSWORD || exit 1
-            initialDelaySeconds: 30
+            tcpSocket:
+              port: 3306
+            initialDelaySeconds: 10
             periodSeconds: 5
             timeoutSeconds: 3
             failureThreshold: 3
