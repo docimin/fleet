@@ -15,7 +15,11 @@ ingress:
   enabled: true
   className: "nginx"
   annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: "/"
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/ssl-passthrough: "false"
   hosts:
     - host: panel.headpat.space
       paths:
@@ -50,6 +54,19 @@ mariadb:
       memory: "512Mi"
       cpu: "250m"
 
+redis:
+  enabled: true
+  image:
+    repository: redis
+    tag: "alpine"
+  resources:
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+    requests:
+      memory: "256Mi"
+      cpu: "100m"
+
 resources:
   limits:
     memory: "2Gi"
@@ -71,4 +88,3 @@ probes:
     periodSeconds: 10
     timeoutSeconds: 5
     failureThreshold: 3
-

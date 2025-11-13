@@ -16,6 +16,12 @@ spec:
         runAsNonRoot: false
         runAsUser: 0
         fsGroup: 0
+      initContainers:
+        - name: cleanup-nginx
+          image: busybox:latest
+          securityContext:
+            runAsUser: 0
+          command: ['sh', '-c', 'rm -rf /srv/pterodactyl/nginx && rm -rf /etc/pterodactyl/nginx']
       containers:
         - name: {{ .Values.name }}-container
           securityContext:
@@ -59,6 +65,18 @@ spec:
               value: ""
             - name: MYSQL_SSL_KEY
               value: ""
+            {{- end }}
+            {{- if .Values.redis.enabled }}
+            - name: REDIS_HOST
+              value: {{ .Values.name }}-redis
+            - name: REDIS_PORT
+              value: "6379"
+            - name: CACHE_DRIVER
+              value: "redis"
+            - name: SESSION_DRIVER
+              value: "redis"
+            - name: QUEUE_DRIVER
+              value: "redis"
             {{- end }}
           envFrom:
             - secretRef:
