@@ -4,7 +4,7 @@ name: fayevr-dev
 
 image:
   repository: harbor.fayevr.dev/fleet/fayevr-dev
-  tag: "0.3.2"
+  tag: "0.3.3"
   pullPolicy: Always
 
 service:
@@ -73,3 +73,9 @@ autoscaling:
 pdb:
   enabled: false
   minAvailable: 1
+
+externalSecret:
+  enabled: true
+  store: vault
+  vaultPath: fayevr-dev
+  refreshInterval: 1h
