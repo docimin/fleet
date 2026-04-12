@@ -4,7 +4,7 @@ name: suggestions-bot
 
 image:
   repository: harbor.fayevr.dev/fleet/suggestions-bot
-  tag: "latest"
+  tag: "1.1.6"
   pullPolicy: Always
 
 service:
@@ -41,6 +41,12 @@ probes:
 pdb:
   enabled: false
   minAvailable: 1
+
+externalSecret:
+  enabled: true
+  store: vault
+  vaultPath: suggestions-preview-bot
+  refreshInterval: 1h
 
 # Redis configuration
 redis:
