@@ -4,7 +4,7 @@ name: headpat-dev
 
 image:
   repository: harbor.fayevr.dev/fleet/headpat-dev
-  tag: "latest"
+  tag: "0.1.0"
   pullPolicy: Always
 
 service:
@@ -13,13 +13,9 @@ service:
 
 ingress:
   enabled: true
-  className: "nginx"
+  className: "traefik"
   annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: "/"
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
-    nginx.ingress.kubernetes.io/ssl-redirect: "true"
-    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
-    nginx.ingress.kubernetes.io/ssl-passthrough: "false"
   hosts:
     - host: headpat.dev
       paths:
@@ -43,7 +39,7 @@ secrets:
 resources:
   limits:
     memory: "512Mi"
-    cpu: "500m"
+    cpu: "256m"
   requests:
     memory: "256Mi"
     cpu: "100m"
