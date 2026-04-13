@@ -4,7 +4,7 @@ name: headpat-space
 
 image:
   repository: harbor.fayevr.dev/fleet/headpat-space
-  tag: "latest"
+  tag: "0.3.0"
   pullPolicy: Always
 
 service:
@@ -13,13 +13,9 @@ service:
 
 ingress:
   enabled: true
-  className: "nginx"
+  className: "traefik"
   annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: "/"
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
-    nginx.ingress.kubernetes.io/ssl-redirect: "true"
-    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
-    nginx.ingress.kubernetes.io/ssl-passthrough: "false"
   hosts:
     - host: headpat.space
       paths:
@@ -42,11 +38,11 @@ secrets:
 
 resources:
   limits:
-    memory: "1Gi"
-    cpu: "2"
-  requests:
     memory: "512Mi"
-    cpu: "250m"
+    cpu: "500m"
+  requests:
+    memory: "256Mi"
+    cpu: "256m"
 
 podAnnotations:
   prometheus.io/scrape: "true"
@@ -78,3 +74,9 @@ autoscaling:
 pdb:
   enabled: false
   minAvailable: 1
+
+externalSecret:
+  enabled: true
+  store: vault
+  vaultPath: headpat-space
+  refreshInterval: 1h
