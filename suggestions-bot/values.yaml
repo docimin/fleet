@@ -52,7 +52,9 @@ externalSecret:
 redis:
   enabled: true
   auth:
-    enabled: true # Password authentication
+    enabled: true
+    existingSecret: suggestions-bot-redis
+    existingSecretPasswordKey: redis-password
   architecture: standalone
   master:
     persistence:
