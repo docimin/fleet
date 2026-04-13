@@ -13,13 +13,9 @@ service:
 
 ingress:
   enabled: true
-  className: "nginx"
+  className: "traefik"
   annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: "/"
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
-    nginx.ingress.kubernetes.io/ssl-redirect: "true"
-    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
-    nginx.ingress.kubernetes.io/ssl-passthrough: "false"
   hosts:
     - host: fyfu.fayevr.dev
       paths:
@@ -60,3 +56,9 @@ probes:
 pdb:
   enabled: false
   minAvailable: 1
+
+externalSecret:
+  enabled: true
+  store: vault
+  vaultPath: modmail-fyfu
+  refreshInterval: 1h
