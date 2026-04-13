@@ -4,7 +4,7 @@ name: qr-generator-dev
 
 image:
   repository: harbor.fayevr.dev/fleet/qr-generator-dev
-  tag: "latest"
+  tag: "0.1.4"
   pullPolicy: Always
 
 service:
@@ -13,13 +13,9 @@ service:
 
 ingress:
   enabled: true
-  className: "nginx"
+  className: "traefik"
   annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: "/"
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
-    nginx.ingress.kubernetes.io/ssl-redirect: "true"
-    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
-    nginx.ingress.kubernetes.io/ssl-passthrough: "false"
   hosts:
     - host: qr-generator.dev
       paths:
@@ -41,11 +37,11 @@ secrets:
 
 resources:
   limits:
-    memory: "1Gi"
-    cpu: "2"
+    memory: "256Mi"
+    cpu: "256m"
   requests:
-    memory: "512Mi"
-    cpu: "250m"
+    memory: "128Mi"
+    cpu: "128m"
 
 podAnnotations:
   prometheus.io/scrape: "true"
