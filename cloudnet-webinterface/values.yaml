@@ -4,7 +4,7 @@ name: cloudnet-webinterface
 
 image:
   repository: harbor.fayevr.dev/fleet/cloudnet-webinterface
-  tag: "latest"
+  tag: "0.8.0"
   pullPolicy: Always
 
 service:
@@ -13,13 +13,9 @@ service:
 
 ingress:
   enabled: true
-  className: "nginx"
+  className: "traefik"
   annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: "/"
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
-    nginx.ingress.kubernetes.io/ssl-redirect: "true"
-    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
-    nginx.ingress.kubernetes.io/ssl-passthrough: "false"
   hosts:
     - host: cloudnet.fayevr.dev
       paths:
