@@ -4,7 +4,7 @@ name: headpat-place
 
 image:
   repository: harbor.fayevr.dev/fleet/headpat-place
-  tag: "latest"
+  tag: "0.8.15"
   pullPolicy: Always
 
 service:
@@ -13,13 +13,9 @@ service:
 
 ingress:
   enabled: true
-  className: "nginx"
+  className: "traefik"
   annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: "/"
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
-    nginx.ingress.kubernetes.io/ssl-redirect: "true"
-    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
-    nginx.ingress.kubernetes.io/ssl-passthrough: "false"
   hosts:
     - host: headpat.place
       paths:
@@ -78,3 +74,9 @@ autoscaling:
 pdb:
   enabled: false
   minAvailable: 1
+
+externalSecret:
+  enabled: true
+  store: vault
+  vaultPath: headpat-place
+  refreshInterval: 1h
