@@ -4,7 +4,7 @@ name: qr-generator-dev
 
 image:
   repository: harbor.fayevr.dev/fleet/qr-generator-dev
-  tag: "0.1.4"
+  tag: "0.1.5"
   pullPolicy: Always
 
 service:
