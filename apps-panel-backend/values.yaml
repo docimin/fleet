@@ -18,13 +18,13 @@ ingress:
   annotations:
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
   hosts:
-    - host: panel.example.com
+    - host: api.headpat.space
       paths:
         - path: "/api"
           pathType: Prefix
   tls:
     - hosts:
-        - panel.example.com
+        - api.headpat.space
       secretName: apps-panel-tls-secret
 
 # External Secrets Operator pulls the panel's runtime env (DATABASE_URL,
@@ -35,10 +35,12 @@ externalSecret:
   refreshInterval: "5m"
   storeRef:
     kind: ClusterSecretStore
-    name: apps-panel-secrets
-  # Extract the whole remote secret as-is (every key becomes an env var).
+    name: k8s-apps-panel
+  # The k8s-apps-panel store reads Secrets from the apps-panel-system
+  # namespace; `key` is the Secret name in that namespace. `extract` takes
+  # every key in that Secret and surfaces it as an env var via envFrom.
   remoteRef:
-    key: apps-panel/backend
+    key: apps-panel-backend-env
   targetSecretName: apps-panel-backend-env
 
 # Used when externalSecret.enabled is false — provide a Secret you've already

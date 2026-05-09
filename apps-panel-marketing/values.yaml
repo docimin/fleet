@@ -39,9 +39,9 @@ externalSecret:
   refreshInterval: "5m"
   storeRef:
     kind: ClusterSecretStore
-    name: apps-panel-secrets
+    name: k8s-apps-panel
   remoteRef:
-    key: apps-panel/marketing
+    key: apps-panel-marketing-env
   targetSecretName: apps-panel-marketing-env
 
 secrets:

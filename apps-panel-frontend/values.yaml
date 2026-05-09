@@ -18,13 +18,13 @@ ingress:
   annotations:
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
   hosts:
-    - host: panel.example.com
+    - host: panel.headpat.space
       paths:
         - path: "/"
           pathType: Prefix
   tls:
     - hosts:
-        - panel.example.com
+        - panel.headpat.space
       secretName: apps-panel-tls-secret
 
 # ESO pulls VITE_BACKEND_URL and any Sentry/branding vars from the configured
@@ -35,9 +35,9 @@ externalSecret:
   refreshInterval: "5m"
   storeRef:
     kind: ClusterSecretStore
-    name: apps-panel-secrets
+    name: k8s-apps-panel
   remoteRef:
-    key: apps-panel/frontend
+    key: apps-panel-frontend-env
   targetSecretName: apps-panel-frontend-env
 
 secrets:
