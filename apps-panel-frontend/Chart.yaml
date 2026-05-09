@@ -1,0 +1,5 @@
+apiVersion: v2
+name: apps-panel-frontend
+description: Hosting panel frontend (TanStack Start SSR)
+version: 0.1.0
+type: application

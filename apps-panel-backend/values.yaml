@@ -1,0 +1,90 @@
+replicaCount: 1
+
+name: apps-panel-backend
+
+image:
+  repository: harbor.fayevr.dev/fleet/apps-panel-backend
+  tag: "0.1.0"
+  pullPolicy: Always
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8787
+
+ingress:
+  enabled: true
+  className: "traefik"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+  hosts:
+    - host: panel.example.com
+      paths:
+        - path: "/api"
+          pathType: Prefix
+  tls:
+    - hosts:
+        - panel.example.com
+      secretName: apps-panel-tls-secret
+
+# External Secrets Operator pulls the panel's runtime env (DATABASE_URL,
+# BETTER_AUTH_SECRET, Stripe keys, etc.) from the configured store and
+# materialises it as a regular Secret that the Deployment mounts via envFrom.
+externalSecret:
+  enabled: true
+  refreshInterval: "5m"
+  storeRef:
+    kind: ClusterSecretStore
+    name: apps-panel-secrets
+  # Extract the whole remote secret as-is (every key becomes an env var).
+  remoteRef:
+    key: apps-panel/backend
+  targetSecretName: apps-panel-backend-env
+
+# Used when externalSecret.enabled is false — provide a Secret you've already
+# created and reference it here.
+secrets:
+  name: apps-panel-backend-env
+  imagePullSecrets:
+    - name: harbor-secret
+
+resources:
+  limits:
+    memory: "1Gi"
+    cpu: "1000m"
+  requests:
+    memory: "512Mi"
+    cpu: "200m"
+
+podAnnotations:
+  prometheus.io/scrape: "true"
+  prometheus.io/port: "8787"
+
+probes:
+  liveness:
+    path: "/health"
+    initialDelaySeconds: 60
+    periodSeconds: 15
+    timeoutSeconds: 5
+    failureThreshold: 5
+    successThreshold: 1
+  readiness:
+    path: "/health"
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+    successThreshold: 1
+
+# Backend runs background cron jobs (sync, billing, bandwidth) so HPA on it is
+# typically off — scale by hand. Leave enabled if you want stateless scale.
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 3
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+
+pdb:
+  enabled: false
+  minAvailable: 1

@@ -1,0 +1,83 @@
+replicaCount: 1
+
+name: apps-panel-frontend
+
+image:
+  repository: harbor.fayevr.dev/fleet/apps-panel-frontend
+  tag: "0.1.0"
+  pullPolicy: Always
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 5173
+
+ingress:
+  enabled: true
+  className: "traefik"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+  hosts:
+    - host: panel.example.com
+      paths:
+        - path: "/"
+          pathType: Prefix
+  tls:
+    - hosts:
+        - panel.example.com
+      secretName: apps-panel-tls-secret
+
+# ESO pulls VITE_BACKEND_URL and any Sentry/branding vars from the configured
+# store. Most frontend env is baked at build time, but VITE_BACKEND_URL needs
+# to be set at runtime to point at the backend Service / public URL.
+externalSecret:
+  enabled: true
+  refreshInterval: "5m"
+  storeRef:
+    kind: ClusterSecretStore
+    name: apps-panel-secrets
+  remoteRef:
+    key: apps-panel/frontend
+  targetSecretName: apps-panel-frontend-env
+
+secrets:
+  name: apps-panel-frontend-env
+  imagePullSecrets:
+    - name: harbor-secret
+
+resources:
+  limits:
+    memory: "512Mi"
+    cpu: "500m"
+  requests:
+    memory: "128Mi"
+    cpu: "100m"
+
+podAnnotations: {}
+
+probes:
+  liveness:
+    path: "/"
+    initialDelaySeconds: 30
+    periodSeconds: 15
+    timeoutSeconds: 5
+    failureThreshold: 3
+    successThreshold: 1
+  readiness:
+    path: "/"
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+    successThreshold: 1
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+
+pdb:
+  enabled: false
+  minAvailable: 1
