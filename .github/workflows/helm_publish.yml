@@ -1,56 +1,68 @@
-name: Publish All Helm Charts to Harbor
+name: Publish Helm charts
 
 on:
-  push:
-    branches:
-      - main
-    paths: # Only run this workflow when changes are made to Helm charts
-      - "**/Chart.yaml"
-      - "**/values.yaml"
-      - "**/templates/*"
+  workflow_dispatch:
+    inputs:
+      chart:
+        description: "Which chart to package and push (or 'all')"
+        required: true
+        type: string
+        default: all
 
 jobs:
-  publish:
+  resolve:
+    name: Resolve chart list
     runs-on: ubuntu-latest
-
+    outputs:
+      charts: ${{ steps.list.outputs.charts }}
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Install Helm
-        uses: azure/setup-helm@v3
+      - name: Build chart matrix
+        id: list
+        run: |
+          if [ "${{ inputs.chart }}" = "all" ]; then
+            charts=$(find . -mindepth 2 -maxdepth 2 -name 'Chart.yaml' -exec dirname {} \; | sed 's|^\./||' | jq -R -s -c 'split("\n") | map(select(length > 0))')
+          else
+            if [ ! -f "${{ inputs.chart }}/Chart.yaml" ]; then
+              echo "::error::No chart found at ${{ inputs.chart }}/Chart.yaml"
+              exit 1
+            fi
+            charts=$(jq -n -c --arg c "${{ inputs.chart }}" '[$c]')
+          fi
+          echo "charts=$charts" >> "$GITHUB_OUTPUT"
+          echo "::notice::Charts to publish: $charts"
+
+  publish:
+    name: Publish ${{ matrix.chart }}
+    needs: resolve
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        chart: ${{ fromJSON(needs.resolve.outputs.charts) }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: azure/setup-helm@v4
         with:
           version: latest
 
-      - name: Enable Helm OCI support
-        run: echo "export HELM_EXPERIMENTAL_OCI=1" >> $GITHUB_ENV
+      - name: Update dependencies
+        working-directory: ${{ matrix.chart }}
+        run: helm dependency update
 
-      - name: Update Helm Dependencies
-        run: |
-          for chart in $(find . -name 'Chart.yaml' -exec dirname {} \;); do
-            echo "Updating dependencies for chart in $chart..."
-            cd "$chart"
-            helm dependency update
-            cd - > /dev/null
-          done
-
-      - name: Log in to Harbor Registry
-        uses: docker/login-action@v3
+      - uses: docker/login-action@v3
         with:
           registry: harbor.fayevr.dev
           username: ${{ secrets.HARBOR_USERNAME }}
           password: ${{ secrets.HARBOR_PASSWORD }}
 
-      - name: Find and Package All Helm Charts
+      - name: Package & push
         run: |
-          for chart in $(find . -name 'Chart.yaml' -exec dirname {} \;); do
-            echo "Packaging chart in $chart..."
-            helm package "$chart" --destination .
-          done
-
-      - name: Push Helm Charts to Harbor
-        run: |
-          for chart in *.tgz; do
-            echo "Pushing $chart..."
-            helm push "$chart" oci://harbor.fayevr.dev/helm
+          set -euo pipefail
+          helm package "${{ matrix.chart }}" --destination .
+          for tgz in "${{ matrix.chart }}"-*.tgz; do
+            echo "Pushing $tgz"
+            helm push "$tgz" oci://harbor.fayevr.dev/helm
           done
