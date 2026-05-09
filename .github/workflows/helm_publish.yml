@@ -9,9 +9,6 @@ on:
         type: string
         default: all
 
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
-
 jobs:
   resolve:
     name: Resolve chart list
@@ -19,7 +16,7 @@ jobs:
     outputs:
       charts: ${{ steps.list.outputs.charts }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Build chart matrix
         id: list
@@ -45,7 +42,7 @@ jobs:
       matrix:
         chart: ${{ fromJSON(needs.resolve.outputs.charts) }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - uses: azure/setup-helm@v4
         with:
