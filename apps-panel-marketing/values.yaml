@@ -1,0 +1,88 @@
+replicaCount: 1
+
+name: apps-panel-marketing
+
+image:
+  repository: harbor.fayevr.dev/fleet/apps-panel-marketing
+  tag: "0.1.0"
+  pullPolicy: Always
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 3001
+
+ingress:
+  enabled: true
+  className: "traefik"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+  hosts:
+    - host: example.com
+      paths:
+        - path: "/"
+          pathType: Prefix
+    - host: www.example.com
+      paths:
+        - path: "/"
+          pathType: Prefix
+  tls:
+    - hosts:
+        - example.com
+        - www.example.com
+      secretName: apps-panel-marketing-tls-secret
+
+# Marketing has minimal runtime env (panel URL, analytics keys). Pull from
+# the same store the panel uses; key path is separate so values can differ.
+externalSecret:
+  enabled: true
+  refreshInterval: "5m"
+  storeRef:
+    kind: ClusterSecretStore
+    name: apps-panel-secrets
+  remoteRef:
+    key: apps-panel/marketing
+  targetSecretName: apps-panel-marketing-env
+
+secrets:
+  name: apps-panel-marketing-env
+  imagePullSecrets:
+    - name: harbor-secret
+
+resources:
+  limits:
+    memory: "256Mi"
+    cpu: "300m"
+  requests:
+    memory: "96Mi"
+    cpu: "50m"
+
+podAnnotations: {}
+
+probes:
+  liveness:
+    path: "/"
+    initialDelaySeconds: 30
+    periodSeconds: 15
+    timeoutSeconds: 5
+    failureThreshold: 3
+    successThreshold: 1
+  readiness:
+    path: "/"
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+    successThreshold: 1
+
+# Marketing is read-only and stateless, so HPA is reasonable to leave on.
+autoscaling:
+  enabled: true
+  minReplicas: 1
+  maxReplicas: 3
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+
+pdb:
+  enabled: false
+  minAvailable: 1
