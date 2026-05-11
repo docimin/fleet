@@ -4,7 +4,7 @@ name: apps-panel-backend
 
 image:
   repository: harbor.fayevr.dev/fleet/apps-panel-backend
-  tag: "0.1.1"
+  tag: "0.1.2"
   pullPolicy: Always
 
 service:
@@ -25,7 +25,7 @@ ingress:
   tls:
     - hosts:
         - api.headpat.space
-      secretName: apps-panel-tls-secret
+      secretName: apps-panel-backend-tls-secret
 
 # External Secrets Operator pulls the panel's runtime env (DATABASE_URL,
 # BETTER_AUTH_SECRET, Stripe keys, etc.) from the configured store and

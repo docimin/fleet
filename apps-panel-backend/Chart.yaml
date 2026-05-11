@@ -1,5 +1,5 @@
 apiVersion: v2
 name: apps-panel-backend
 description: Hosting panel backend (Hono + oRPC + Drizzle on Bun)
-version: 0.1.2
+version: 0.1.3
 type: application

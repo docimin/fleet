@@ -4,7 +4,7 @@ name: apps-panel-frontend
 
 image:
   repository: harbor.fayevr.dev/fleet/apps-panel-frontend
-  tag: "0.1.0"
+  tag: "0.1.2"
   pullPolicy: Always
 
 service:
@@ -25,7 +25,7 @@ ingress:
   tls:
     - hosts:
         - panel.headpat.space
-      secretName: apps-panel-tls-secret
+      secretName: apps-panel-frontend-tls
 
 # ESO pulls VITE_BACKEND_URL and any Sentry/branding vars from the configured
 # store. Most frontend env is baked at build time, but VITE_BACKEND_URL needs
