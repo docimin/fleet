@@ -35,12 +35,9 @@ externalSecret:
   refreshInterval: "5m"
   storeRef:
     kind: ClusterSecretStore
-    name: k8s-apps-panel
-  # The k8s-apps-panel store reads Secrets from the apps-panel-system
-  # namespace; `key` is the Secret name in that namespace. `extract` takes
-  # every key in that Secret and surfaces it as an env var via envFrom.
+    name: vault-apps-panel
   remoteRef:
-    key: apps-panel-backend-env
+    key: apps-panel/backend-env
   targetSecretName: apps-panel-backend-env
 
 # Used when externalSecret.enabled is false — provide a Secret you've already

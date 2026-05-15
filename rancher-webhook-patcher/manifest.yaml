@@ -1,0 +1,112 @@
+#
+# Keeps the rancher.cattle.io namespace-create webhook's matchConditions
+# patched so the apps-panel service account can create tenant namespaces.
+#
+# The rancher-webhook Helm chart re-templates the ValidatingWebhookConfiguration
+# on every upgrade / cluster re-import, wiping any matchConditions we add. This
+# CronJob re-applies the patch on a 5-minute cadence; the patch script is
+# idempotent so it's a no-op when the matchCondition is already there.
+#
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: rancher-webhook-patcher
+  namespace: apps-panel-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: rancher-webhook-patcher
+rules:
+  - apiGroups: ["admissionregistration.k8s.io"]
+    resources: ["validatingwebhookconfigurations"]
+    resourceNames: ["rancher.cattle.io"]
+    verbs: ["get", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: rancher-webhook-patcher
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: rancher-webhook-patcher
+subjects:
+  - kind: ServiceAccount
+    name: rancher-webhook-patcher
+    namespace: apps-panel-system
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rancher-webhook-patcher-script
+  namespace: apps-panel-system
+data:
+  patch.sh: |
+    #!/bin/sh
+    set -eu
+    HOOK_NAME=rancher.cattle.io.namespaces.create-non-kubesystem
+    SA_USER="system:serviceaccount:apps-panel-system:apps-panel"
+    COND_NAME=skip-apps-panel
+
+    json=$(kubectl get validatingwebhookconfiguration rancher.cattle.io -o json)
+
+    idx=$(echo "$json" | jq --arg n "$HOOK_NAME" \
+      '.webhooks | map(.name == $n) | index(true)')
+
+    if [ "$idx" = "null" ] || [ -z "$idx" ]; then
+      echo "Webhook $HOOK_NAME not present — nothing to patch."
+      exit 0
+    fi
+
+    already=$(echo "$json" | jq --argjson i "$idx" --arg c "$COND_NAME" \
+      '.webhooks[$i].matchConditions // [] | map(.name == $c) | any')
+
+    if [ "$already" = "true" ]; then
+      echo "matchCondition $COND_NAME already present at webhooks[$idx]."
+      exit 0
+    fi
+
+    echo "Patching webhooks[$idx] with matchCondition $COND_NAME"
+    expr="request.userInfo.username != \"$SA_USER\""
+    kubectl patch validatingwebhookconfiguration rancher.cattle.io \
+      --type=json \
+      -p="[{\"op\":\"add\",\"path\":\"/webhooks/$idx/matchConditions\",\"value\":[{\"name\":\"$COND_NAME\",\"expression\":\"$expr\"}]}]"
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: rancher-webhook-patcher
+  namespace: apps-panel-system
+spec:
+  schedule: "*/5 * * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      ttlSecondsAfterFinished: 600
+      template:
+        spec:
+          serviceAccountName: rancher-webhook-patcher
+          restartPolicy: OnFailure
+          containers:
+            - name: patcher
+              image: alpine/k8s:1.31.6
+              command: ["/bin/sh", "/scripts/patch.sh"]
+              volumeMounts:
+                - name: script
+                  mountPath: /scripts
+              resources:
+                requests:
+                  cpu: 10m
+                  memory: 32Mi
+                limits:
+                  cpu: 100m
+                  memory: 128Mi
+          volumes:
+            - name: script
+              configMap:
+                name: rancher-webhook-patcher-script
+                defaultMode: 0755
