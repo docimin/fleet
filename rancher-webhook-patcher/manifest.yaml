@@ -69,7 +69,10 @@ data:
     fi
 
     echo "Patching webhooks[$idx] with matchCondition $COND_NAME"
-    expr="request.userInfo.username != \"$SA_USER\""
+    # CEL supports both ' and " for string literals. Single quotes here mean
+    # the resulting JSON has no nested double quotes to escape — yaml/json
+    # parser doesn't choke on the patch payload.
+    expr="request.userInfo.username != '$SA_USER'"
     kubectl patch validatingwebhookconfiguration rancher.cattle.io \
       --type=json \
       -p="[{\"op\":\"add\",\"path\":\"/webhooks/$idx/matchConditions\",\"value\":[{\"name\":\"$COND_NAME\",\"expression\":\"$expr\"}]}]"
