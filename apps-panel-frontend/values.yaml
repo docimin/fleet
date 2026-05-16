@@ -4,7 +4,7 @@ name: apps-panel-frontend
 
 image:
   repository: harbor.fayevr.dev/fleet/apps-panel-frontend
-  tag: "0.1.2"
+  tag: "0.2.2"
   pullPolicy: Always
 
 service:
@@ -20,6 +20,12 @@ ingress:
   hosts:
     - host: panel.headpat.space
       paths:
+        # /api routed to backend Service so the frontend can call same-origin
+        # — keeps auth cookies first-party and avoids CORS.
+        - path: "/api"
+          pathType: Prefix
+          service: apps-panel-backend-service
+          port: 80
         - path: "/"
           pathType: Prefix
   tls:
