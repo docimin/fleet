@@ -1,0 +1,39 @@
+# apps-panel-worker — single-replica background worker for cron jobs + status
+# checker. Dedicated image built from backend/Dockerfile.worker. NEVER scale
+# beyond replicaCount: 1 without first moving jobs into a queue (pg-boss /
+# BullMQ) — every replica would otherwise run every cron loop independently.
+replicaCount: 1
+
+name: apps-panel-worker
+
+image:
+  repository: harbor.fayevr.dev/fleet/apps-panel-worker
+  tag: "0.2.2"
+  pullPolicy: Always
+
+# Reuse the backend's env secret — the worker needs the same DATABASE_URL,
+# Stripe keys, Proxmox creds, etc. as the backend.
+externalSecret:
+  enabled: true
+  refreshInterval: "5m"
+  storeRef:
+    kind: ClusterSecretStore
+    name: vault-apps-panel
+  remoteRef:
+    key: apps-panel/backend-env
+  targetSecretName: apps-panel-worker-env
+
+secrets:
+  name: apps-panel-worker-env
+  imagePullSecrets:
+    - name: harbor-secret
+
+resources:
+  limits:
+    memory: "1Gi"
+    cpu: "1000m"
+  requests:
+    memory: "256Mi"
+    cpu: "100m"
+
+podAnnotations: {}
