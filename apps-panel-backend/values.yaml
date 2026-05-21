@@ -87,3 +87,15 @@ autoscaling:
 pdb:
   enabled: false
   minAvailable: 1
+
+# ServiceAccount + RBAC. The fine-grained permissions (apps-panel-cluster +
+# apps-panel-tenant ClusterRoles) live in infra/apps-cluster/panel-rbac-v2.yaml
+# and are applied once per cluster — independent of any Helm release. This
+# chart just creates the SA and an optional break-glass binding.
+serviceAccount:
+  name: apps-panel
+
+rbac:
+  # DO NOT enable in normal operation. Temporary break-glass only: grants
+  # the panel SA cluster-admin on the entire cluster. Default false.
+  useClusterAdmin: false

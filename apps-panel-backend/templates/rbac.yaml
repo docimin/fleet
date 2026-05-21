@@ -1,0 +1,55 @@
+{{- /*
+  ServiceAccount + optional RBAC for the panel backend.
+
+  The actual fine-grained permissions live in
+  `infra/apps-cluster/panel-rbac-v2.yaml` (apply once per cluster):
+    - ClusterRole/apps-panel-cluster — narrow cluster-scoped reads
+    - ClusterRole/apps-panel-tenant  — tenant-scoped CRUD (bound per-tenant
+      namespace by the backend at provisioning)
+
+  This chart just creates the SA and (optionally) a cluster-admin shortcut
+  for break-glass scenarios. `rbac.useClusterAdmin` defaults to `false` — set
+  it to `true` only as a temporary rollback if narrow RBAC misses a verb.
+*/}}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ .Values.serviceAccount.name }}
+  namespace: {{ .Release.Namespace }}
+---
+# Grant tenant-scoped perms (apps-panel-tenant ClusterRole — defined in
+# infra/apps-cluster/panel-rbac-v2.yaml) inside the panel's own namespace.
+# Needed because the panel also writes Ingress/Certificate/Secret here for
+# reseller whitelabel domains via backend/src/lib/panel-cluster.ts.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: apps-panel-tenant
+  namespace: {{ .Release.Namespace }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: apps-panel-tenant
+subjects:
+  - kind: ServiceAccount
+    name: {{ .Values.serviceAccount.name }}
+    namespace: {{ .Release.Namespace }}
+{{- if .Values.rbac.useClusterAdmin }}
+---
+# DANGEROUS — grants the panel SA cluster-admin on the entire cluster. Only
+# enable as a temporary break-glass during incident response. Default off.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ .Release.Name }}-cluster-admin
+  annotations:
+    apps-panel.headpat.dev/warning: "cluster-admin granted via Helm value rbac.useClusterAdmin=true"
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+  - kind: ServiceAccount
+    name: {{ .Values.serviceAccount.name }}
+    namespace: {{ .Release.Namespace }}
+{{- end }}
