@@ -8,7 +8,7 @@ name: apps-panel-worker
 
 image:
   repository: harbor.fayevr.dev/fleet/apps-panel-worker
-  tag: "0.2.2"
+  tag: "0.3.4"
   pullPolicy: Always
 
 # Reuse the backend's env secret — the worker needs the same DATABASE_URL,
@@ -37,3 +37,9 @@ resources:
     cpu: "100m"
 
 podAnnotations: {}
+
+# Reuse the SA created by the apps-panel-backend chart in the same namespace.
+# That SA has the narrow apps-panel-cluster + apps-panel-tenant bindings the
+# worker also needs (provision retries, bandwidth checks all hit the k8s API).
+serviceAccount:
+  name: apps-panel
