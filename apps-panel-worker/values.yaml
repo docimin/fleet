@@ -38,6 +38,16 @@ resources:
 
 podAnnotations: {}
 
+# Inline env (feature flags, log levels — non-secret). Set/remove individual
+# keys here; rendered as `env:` on the container alongside `envFrom: secretRef`.
+# Currently enabling the metered-storage worker in DRY-RUN mode for validation —
+# auto-expand decisions and meter events are LOGGED but not actually sent until
+# STORAGE_METER_DRYRUN is removed.
+env:
+  STORAGE_WORKER_ENABLED: "1"
+  STORAGE_METER_DRYRUN: "1"
+  LOG_LEVEL: "info"
+
 # Reuse the SA created by the apps-panel-backend chart in the same namespace.
 # That SA has the narrow apps-panel-cluster + apps-panel-tenant bindings the
 # worker also needs (provision retries, bandwidth checks all hit the k8s API).

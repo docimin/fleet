@@ -40,6 +40,15 @@ spec:
           envFrom:
             - secretRef:
                 name: {{ if .Values.externalSecret.enabled }}{{ .Values.externalSecret.targetSecretName }}{{ else }}{{ .Values.secrets.name }}{{ end }}
+          {{- with .Values.env }}
+          # Inline env (feature flags etc.) — entries here override identically-
+          # named keys from the secret via envFrom. Keep secrets in Vault, not here.
+          env:
+            {{- range $k, $v := . }}
+            - name: {{ $k }}
+              value: {{ $v | quote }}
+            {{- end }}
+          {{- end }}
           volumeMounts:
             - name: tmp
               mountPath: /tmp
