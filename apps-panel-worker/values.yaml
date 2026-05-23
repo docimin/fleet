@@ -8,7 +8,7 @@ name: apps-panel-worker
 
 image:
   repository: harbor.fayevr.dev/fleet/apps-panel-worker
-  tag: "0.3.4"
+  tag: "0.3.16"
   pullPolicy: Always
 
 # Reuse the backend's env secret — the worker needs the same DATABASE_URL,
