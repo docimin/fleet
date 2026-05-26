@@ -43,7 +43,7 @@ externalSecret:
     kind: ClusterSecretStore
     name: vault-cloud-erp
   remoteRef:
-    key: frontend
+    key: vault-cloud-erp/frontend
   targetSecretName: cloud-erp-frontend
 
 secrets:

@@ -39,7 +39,7 @@ externalSecret:
     kind: ClusterSecretStore
     name: vault-cloud-erp
   remoteRef:
-    key: backend
+    key: vault-cloud-erp/backend
   targetSecretName: cloud-erp-backend
 
 # Used when externalSecret.enabled is false — provide a Secret you've
