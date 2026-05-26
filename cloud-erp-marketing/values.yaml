@@ -34,7 +34,7 @@ externalSecret:
     kind: ClusterSecretStore
     name: vault-cloud-erp
   remoteRef:
-    key: cloud-erp/marketing
+    key: marketing
   targetSecretName: cloud-erp-marketing
 
 secrets:
