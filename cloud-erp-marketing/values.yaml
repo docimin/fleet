@@ -1,0 +1,80 @@
+replicaCount: 1
+
+name: cloud-erp-marketing
+
+image:
+  repository: harbor.fayevr.dev/fleet/cloud-erp-marketing
+  tag: "0.1.0"
+  pullPolicy: Always
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 3000
+
+ingress:
+  enabled: true
+  className: "traefik"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+  hosts:
+    - host: cloud-erp.dev
+      paths:
+        - path: "/"
+          pathType: Prefix
+  tls:
+    - hosts:
+        - cloud-erp.dev
+      secretName: cloud-erp-marketing-tls
+
+externalSecret:
+  enabled: true
+  refreshInterval: "5m"
+  storeRef:
+    kind: ClusterSecretStore
+    name: vault-cloud-erp
+  remoteRef:
+    key: cloud-erp/marketing-env
+  targetSecretName: cloud-erp-marketing-env
+
+secrets:
+  name: cloud-erp-marketing-env
+  imagePullSecrets:
+    - name: harbor-secret
+
+resources:
+  limits:
+    memory: "512Mi"
+    cpu: "500m"
+  requests:
+    memory: "128Mi"
+    cpu: "100m"
+
+podAnnotations: {}
+
+probes:
+  liveness:
+    path: "/"
+    initialDelaySeconds: 30
+    periodSeconds: 15
+    timeoutSeconds: 5
+    failureThreshold: 3
+    successThreshold: 1
+  readiness:
+    path: "/"
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+    successThreshold: 1
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 3
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+
+pdb:
+  enabled: false
+  minAvailable: 1

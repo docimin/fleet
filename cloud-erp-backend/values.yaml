@@ -1,0 +1,92 @@
+replicaCount: 1
+
+name: cloud-erp-backend
+
+image:
+  repository: harbor.fayevr.dev/fleet/cloud-erp-backend
+  tag: "0.1.0"
+  pullPolicy: Always
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8787
+
+ingress:
+  enabled: true
+  className: "traefik"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+  hosts:
+    - host: api.cloud-erp.dev
+      paths:
+        - path: "/"
+          pathType: Prefix
+  tls:
+    - hosts:
+        - api.cloud-erp.dev
+      secretName: cloud-erp-backend-tls-secret
+
+# External Secrets Operator pulls the backend's runtime env
+# (CONTROL_DATABASE_URL, DATABASE_URL, REDIS_URL, BETTER_AUTH_SECRET,
+# PLATFORM_AUTH_SECRET, CONTROL_DB_ENCRYPTION_KEY, etc.) from the
+# configured store and materialises it as a regular Secret that the
+# Deployment mounts via envFrom.
+externalSecret:
+  enabled: true
+  refreshInterval: "5m"
+  storeRef:
+    kind: ClusterSecretStore
+    name: vault-cloud-erp
+  remoteRef:
+    key: cloud-erp/backend-env
+  targetSecretName: cloud-erp-backend-env
+
+# Used when externalSecret.enabled is false — provide a Secret you've
+# already created and reference it here.
+secrets:
+  name: cloud-erp-backend-env
+  imagePullSecrets:
+    - name: harbor-secret
+
+resources:
+  limits:
+    memory: "1Gi"
+    cpu: "1000m"
+  requests:
+    memory: "512Mi"
+    cpu: "200m"
+
+podAnnotations:
+  prometheus.io/scrape: "true"
+  prometheus.io/port: "8787"
+
+probes:
+  liveness:
+    path: "/api/v1/health"
+    initialDelaySeconds: 60
+    periodSeconds: 15
+    timeoutSeconds: 5
+    failureThreshold: 5
+    successThreshold: 1
+  readiness:
+    path: "/api/v1/health"
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+    successThreshold: 1
+
+# Backend runs in-process schedulers (currency refresh, etc.) so HPA is
+# off by default — scale by hand. Flip on if traffic dominates over
+# scheduler work.
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 3
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+
+pdb:
+  enabled: false
+  minAvailable: 1

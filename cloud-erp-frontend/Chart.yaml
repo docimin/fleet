@@ -1,0 +1,5 @@
+apiVersion: v2
+name: cloud-erp-frontend
+description: Cloud ERP frontend (TanStack Start SSR)
+version: 0.1.0
+type: application

@@ -1,0 +1,5 @@
+apiVersion: v2
+name: cloud-erp-marketing
+description: Cloud ERP marketing site (TanStack Start SSR — public landing + sign-up + /api/docs)
+version: 0.1.0
+type: application
