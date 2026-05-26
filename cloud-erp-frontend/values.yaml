@@ -64,16 +64,16 @@ podAnnotations: {}
 probes:
   liveness:
     path: "/"
-    initialDelaySeconds: 30
-    periodSeconds: 15
-    timeoutSeconds: 5
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 3
     failureThreshold: 3
     successThreshold: 1
   readiness:
     path: "/"
-    initialDelaySeconds: 10
-    periodSeconds: 10
-    timeoutSeconds: 5
+    initialDelaySeconds: 3
+    periodSeconds: 3
+    timeoutSeconds: 3
     failureThreshold: 3
     successThreshold: 1
 
