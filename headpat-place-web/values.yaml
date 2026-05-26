@@ -1,0 +1,62 @@
+replicaCount: 1
+
+name: headpat-place-web
+
+image:
+  repository: harbor.fayevr.dev/fleet/headpat-place-web
+  tag: "0.1.0"
+  pullPolicy: Always
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 3000
+
+ingress:
+  enabled: true
+  className: "traefik"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+  hosts:
+    - host: staging.headpat.place
+      paths:
+        - path: "/"
+          pathType: Prefix
+  tls:
+    - hosts:
+        - staging.headpat.place
+      secretName: headpat-place-web-tls-secret
+
+externalSecret:
+  enabled: true
+  store: vault
+  vaultPath: headpat-place/web-env
+  refreshInterval: 1h
+
+secrets:
+  name: headpat-place-web-env
+  imagePullSecrets:
+    - name: harbor-secret
+
+resources:
+  limits:
+    memory: "512Mi"
+    cpu: "1000m"
+  requests:
+    memory: "128Mi"
+    cpu: "100m"
+
+probes:
+  liveness:
+    path: "/"
+    initialDelaySeconds: 30
+    periodSeconds: 15
+    failureThreshold: 3
+  readiness:
+    path: "/"
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    failureThreshold: 3
+
+autoscaling:
+  enabled: false
