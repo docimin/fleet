@@ -1,0 +1,80 @@
+replicaCount: 1
+
+name: headpat-place-api
+
+image:
+  repository: harbor.fayevr.dev/fleet/headpat-place-api
+  tag: "0.1.0"
+  pullPolicy: Always
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8787
+
+ingress:
+  enabled: true
+  className: "traefik"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+  hosts:
+    - host: api-staging.headpat.place
+      paths:
+        - path: "/"
+          pathType: Prefix
+  tls:
+    - hosts:
+        - api-staging.headpat.place
+      secretName: headpat-place-api-tls-secret
+
+externalSecret:
+  enabled: true
+  refreshInterval: "5m"
+  storeRef:
+    kind: ClusterSecretStore
+    name: vault-apps-panel
+  remoteRef:
+    key: headpat-place/api-env
+  targetSecretName: headpat-place-api-env
+
+secrets:
+  name: headpat-place-api-env
+  imagePullSecrets:
+    - name: harbor-secret
+
+resources:
+  limits:
+    memory: "1Gi"
+    cpu: "1000m"
+  requests:
+    memory: "256Mi"
+    cpu: "100m"
+
+podAnnotations:
+  prometheus.io/scrape: "true"
+  prometheus.io/port: "8787"
+
+probes:
+  liveness:
+    path: "/health"
+    initialDelaySeconds: 30
+    periodSeconds: 15
+    timeoutSeconds: 5
+    failureThreshold: 5
+    successThreshold: 1
+  readiness:
+    path: "/health"
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+    successThreshold: 1
+
+autoscaling:
+  enabled: false
+
+pdb:
+  enabled: false
+
+serviceAccount:
+  name: headpat-place-api
