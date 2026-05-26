@@ -39,13 +39,13 @@ externalSecret:
     kind: ClusterSecretStore
     name: vault-cloud-erp
   remoteRef:
-    key: cloud-erp/backend-env
-  targetSecretName: cloud-erp-backend-env
+    key: cloud-erp/backend
+  targetSecretName: cloud-erp-backend
 
 # Used when externalSecret.enabled is false — provide a Secret you've
 # already created and reference it here.
 secrets:
-  name: cloud-erp-backend-env
+  name: cloud-erp-backend
   imagePullSecrets:
     - name: harbor-secret
 

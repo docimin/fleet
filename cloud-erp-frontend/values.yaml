@@ -43,11 +43,11 @@ externalSecret:
     kind: ClusterSecretStore
     name: vault-cloud-erp
   remoteRef:
-    key: cloud-erp/frontend-env
-  targetSecretName: cloud-erp-frontend-env
+    key: cloud-erp/frontend
+  targetSecretName: cloud-erp-frontend
 
 secrets:
-  name: cloud-erp-frontend-env
+  name: cloud-erp-frontend
   imagePullSecrets:
     - name: harbor-secret
 

@@ -34,11 +34,11 @@ externalSecret:
     kind: ClusterSecretStore
     name: vault-cloud-erp
   remoteRef:
-    key: cloud-erp/marketing-env
-  targetSecretName: cloud-erp-marketing-env
+    key: cloud-erp/marketing
+  targetSecretName: cloud-erp-marketing
 
 secrets:
-  name: cloud-erp-marketing-env
+  name: cloud-erp-marketing
   imagePullSecrets:
     - name: harbor-secret
 
