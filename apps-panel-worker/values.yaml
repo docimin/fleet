@@ -40,12 +40,10 @@ podAnnotations: {}
 
 # Inline env (feature flags, log levels — non-secret). Set/remove individual
 # keys here; rendered as `env:` on the container alongside `envFrom: secretRef`.
-# Currently enabling the metered-storage worker in DRY-RUN mode for validation —
-# auto-expand decisions and meter events are LOGGED but not actually sent until
-# STORAGE_METER_DRYRUN is removed.
+# Storage meter is LIVE — PVC auto-expand and Stripe meter events are real.
+# To re-enable dry-run during validation, set STORAGE_METER_DRYRUN: "1" here.
 env:
   STORAGE_WORKER_ENABLED: "1"
-  STORAGE_METER_DRYRUN: "1"
   LOG_LEVEL: "info"
 
 # Reuse the SA created by the apps-panel-backend chart in the same namespace.
