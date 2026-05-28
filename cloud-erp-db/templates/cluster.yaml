@@ -1,0 +1,25 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: {{ .Values.cluster.name }}
+spec:
+  instances: {{ .Values.cluster.instances }}
+  imageName: {{ .Values.cluster.image }}
+  primaryUpdateStrategy: unsupervised
+  enableSuperuserAccess: {{ .Values.cluster.enableSuperuserAccess }}
+  storage:
+    size: {{ .Values.cluster.storage.size }}
+    storageClass: {{ .Values.cluster.storage.storageClass }}
+    resizeInUseVolumes: true
+  bootstrap:
+    initdb:
+      database: {{ .Values.cluster.database }}
+      owner: {{ .Values.cluster.owner }}
+      encoding: UTF8
+  postgresql:
+    parameters:
+      wal_level: logical
+      max_replication_slots: "32"
+      max_worker_processes: "32"
+  resources:
+    {{- toYaml .Values.cluster.resources | nindent 4 }}

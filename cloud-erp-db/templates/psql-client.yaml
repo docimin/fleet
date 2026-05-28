@@ -1,0 +1,48 @@
+{{- if .Values.psqlClient.enabled }}
+# Long-lived psql shell wired to the cluster's superuser secret. Use it
+# to run ad-hoc SQL or pipe a script file into the database:
+#   kubectl -n {{ .Release.Namespace }} exec -it deploy/{{ .Values.cluster.name }}-client -- psql
+#   kubectl -n {{ .Release.Namespace }} exec -i  deploy/{{ .Values.cluster.name }}-client -- psql < script.sql
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.cluster.name }}-client
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Values.cluster.name }}-client
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.cluster.name }}-client
+    spec:
+      containers:
+        - name: psql
+          image: {{ .Values.cluster.image }}
+          command: ["sleep", "infinity"]
+          env:
+            - name: PGHOST
+              value: {{ .Values.cluster.name }}-rw.{{ .Release.Namespace }}.svc
+            - name: PGPORT
+              value: "5432"
+            - name: PGDATABASE
+              value: {{ .Values.cluster.database }}
+            - name: PGUSER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.cluster.name }}-superuser
+                  key: username
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.cluster.name }}-superuser
+                  key: password
+          resources:
+            limits:
+              cpu: "200m"
+              memory: 128Mi
+            requests:
+              cpu: "10m"
+              memory: 32Mi
+{{- end }}

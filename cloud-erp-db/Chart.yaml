@@ -1,0 +1,5 @@
+apiVersion: v2
+name: cloud-erp-db
+description: Cloud ERP PostgreSQL cluster (CloudNativePG, 3 nodes) + psql client
+version: 0.1.0
+type: application
