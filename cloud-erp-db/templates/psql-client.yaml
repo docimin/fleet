@@ -28,15 +28,18 @@ spec:
               value: "5432"
             - name: PGDATABASE
               value: {{ .Values.cluster.database }}
+            {{- /* superuser secret only exists when enableSuperuserAccess is true;
+                   otherwise fall back to the app-role secret CNPG always creates. */}}
+            {{- $secret := printf "%s-%s" .Values.cluster.name (ternary "superuser" "app" .Values.cluster.enableSuperuserAccess) }}
             - name: PGUSER
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.cluster.name }}-superuser
+                  name: {{ $secret }}
                   key: username
             - name: PGPASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.cluster.name }}-superuser
+                  name: {{ $secret }}
                   key: password
           resources:
             limits:

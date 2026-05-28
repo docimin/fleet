@@ -1,0 +1,29 @@
+# Control-plane cluster: holds the mgmt (control) + marketplace databases.
+# 3 nodes for HA because the control DB gates ALL sign-ins (tenant
+# resolution reads it on Redis cache-miss) — a single node would be a
+# platform-wide SPOF. Tiny data, so small disk + modest resources.
+# Install: helm upgrade --install erp-pg-mgmt ./cloud-erp-db -n cloud-erp-db -f cloud-erp-db/values-mgmt.yaml
+cluster:
+  name: erp-pg-mgmt
+  instances: 3
+  image: ghcr.io/cloudnative-pg/postgresql:18.3-system-trixie
+  storage:
+    size: 5Gi
+    storageClass: ceph-rbd-kubernetes
+  database: mgmt
+  owner: erp
+  extraDatabases:
+    - marketplace
+  # Control plane never runs CREATE DATABASE — no superuser needed. The
+  # owner role (erp) has full DDL on mgmt + marketplace for migrations.
+  enableSuperuserAccess: false
+  resources:
+    limits:
+      cpu: "500m"
+      memory: 512Mi
+    requests:
+      cpu: "50m"
+      memory: 128Mi
+
+psqlClient:
+  enabled: true

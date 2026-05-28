@@ -23,3 +23,15 @@ spec:
       max_worker_processes: "32"
   resources:
     {{- toYaml .Values.cluster.resources | nindent 4 }}
+{{- range .Values.cluster.extraDatabases }}
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: {{ $.Values.cluster.name }}-{{ . }}
+spec:
+  cluster:
+    name: {{ $.Values.cluster.name }}
+  name: {{ . }}
+  owner: {{ $.Values.cluster.owner }}
+{{- end }}

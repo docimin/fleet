@@ -11,6 +11,10 @@ cluster:
   # superuser must be reachable — see enableSuperuserAccess below.
   database: mgmt
   owner: erp
+  # Additional databases to create alongside the bootstrap one (CNPG
+  # Database CRs). Empty for the tenants cluster — tenant DBs are created
+  # dynamically by the backend via CREATE DATABASE.
+  extraDatabases: []
   # cloud-erp's tenant provisioning connects as the postgres superuser to
   # CREATE DATABASE / CREATE ROLE per tenant. CNPG only materialises the
   # `<cluster>-superuser` secret when this is true.
