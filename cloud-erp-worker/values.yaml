@@ -1,0 +1,59 @@
+# MUST stay 1. The worker runs interval crons (tenant/invite cleanup,
+# dunning, recurring, FX refresh, manifest refresh, …); a second replica
+# would double-fire every tick. Scale the API (cloud-erp-backend) for
+# traffic, never this.
+replicaCount: 1
+
+name: cloud-erp-worker
+
+# Same image as the API — the split is runtime (RUN_WORKERS env), not a
+# separate build. Keep the tag in lockstep with cloud-erp-backend.
+image:
+  repository: harbor.fayevr.dev/fleet/cloud-erp-backend
+  tag: "0.0.2"
+  pullPolicy: Always
+
+# The process still serves /api/v1/health on this port for k8s probes;
+# there is no Service or Ingress — the worker takes no external traffic.
+port: 8787
+
+# Same runtime env as the API (DB + Redis + secrets), pulled from the
+# same Vault path so credentials never drift between the two tiers.
+externalSecret:
+  enabled: true
+  refreshInterval: "5m"
+  storeRef:
+    kind: ClusterSecretStore
+    name: vault-cloud-erp
+  remoteRef:
+    key: vault-cloud-erp/backend
+  targetSecretName: cloud-erp-worker
+
+secrets:
+  name: cloud-erp-worker
+  imagePullSecrets:
+    - name: harbor-secret
+
+resources:
+  limits:
+    memory: "1Gi"
+    cpu: "1000m"
+  requests:
+    memory: "256Mi"
+    cpu: "100m"
+
+probes:
+  liveness:
+    path: "/api/v1/health"
+    initialDelaySeconds: 15
+    periodSeconds: 10
+    timeoutSeconds: 3
+    failureThreshold: 3
+    successThreshold: 1
+  readiness:
+    path: "/api/v1/health"
+    initialDelaySeconds: 3
+    periodSeconds: 3
+    timeoutSeconds: 3
+    failureThreshold: 3
+    successThreshold: 1

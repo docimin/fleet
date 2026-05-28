@@ -77,9 +77,9 @@ probes:
     failureThreshold: 3
     successThreshold: 1
 
-# Backend runs in-process schedulers (currency refresh, etc.) so HPA is
-# off by default — scale by hand. Flip on if traffic dominates over
-# scheduler work.
+# Safe to scale horizontally now that crons/workers live on
+# cloud-erp-worker (RUN_WORKERS=false here). Off by default; enable when
+# traffic warrants.
 autoscaling:
   enabled: false
   minReplicas: 1

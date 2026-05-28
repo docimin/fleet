@@ -4,11 +4,11 @@ metadata:
   name: {{ .Values.name }}
 spec:
   replicas: {{ .Values.replicaCount }}
+  # Recreate (not RollingUpdate): never run two workers at once, or the
+  # interval crons double-fire during a rollout. A brief gap is fine —
+  # ticks are idempotent and catch up on the next interval.
   strategy:
-    type: RollingUpdate
-    rollingUpdate:
-      maxSurge: 1
-      maxUnavailable: 0
+    type: Recreate
   selector:
     matchLabels:
       app: {{ .Values.name }}
@@ -16,10 +16,6 @@ spec:
     metadata:
       labels:
         app: {{ .Values.name }}
-      {{- with .Values.podAnnotations }}
-      annotations:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
     spec:
       securityContext:
         runAsNonRoot: true
@@ -35,14 +31,12 @@ spec:
           image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
-            - containerPort: {{ .Values.service.targetPort }}
+            - containerPort: {{ .Values.port }}
           env:
             - name: PORT
-              value: {{ .Values.service.targetPort | quote }}
-            # API tier only — crons + queue workers run on cloud-erp-worker
-            # (single replica) so scaling the API doesn't multi-fire them.
+              value: {{ .Values.port | quote }}
             - name: RUN_WORKERS
-              value: "false"
+              value: "true"
           envFrom:
             - secretRef:
                 name: {{ if .Values.externalSecret.enabled }}{{ .Values.externalSecret.targetSecretName }}{{ else }}{{ .Values.secrets.name }}{{ end }}
@@ -59,7 +53,7 @@ spec:
           livenessProbe:
             httpGet:
               path: {{ .Values.probes.liveness.path }}
-              port: {{ .Values.service.targetPort }}
+              port: {{ .Values.port }}
             initialDelaySeconds: {{ .Values.probes.liveness.initialDelaySeconds }}
             periodSeconds: {{ .Values.probes.liveness.periodSeconds }}
             timeoutSeconds: {{ .Values.probes.liveness.timeoutSeconds }}
@@ -68,7 +62,7 @@ spec:
           readinessProbe:
             httpGet:
               path: {{ .Values.probes.readiness.path }}
-              port: {{ .Values.service.targetPort }}
+              port: {{ .Values.port }}
             initialDelaySeconds: {{ .Values.probes.readiness.initialDelaySeconds }}
             periodSeconds: {{ .Values.probes.readiness.periodSeconds }}
             timeoutSeconds: {{ .Values.probes.readiness.timeoutSeconds }}
