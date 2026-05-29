@@ -71,12 +71,12 @@ probes:
     successThreshold: 1
 
 cronjob:
-  # Sweeps orphaned storage objects (uploads that never got linked to a row).
-  # Scoped to gallery by default so migrated avatars/banners are never touched.
+  # Sweeps orphaned storage objects: files uploaded to S3 but never linked to a
+  # row (broken/abandoned uploads), across all media kinds. The 24h grace period
+  # protects in-flight uploads; only objects orphaned longer than that are removed.
   enabled: true
   schedule: "0 3 * * *"
   args:
-    - "--kind=gallery"
     - "--max-age-hours=24"
 
 autoscaling:
