@@ -70,6 +70,15 @@ probes:
     failureThreshold: 3
     successThreshold: 1
 
+cronjob:
+  # Sweeps orphaned storage objects (uploads that never got linked to a row).
+  # Scoped to gallery by default so migrated avatars/banners are never touched.
+  enabled: true
+  schedule: "0 3 * * *"
+  args:
+    - "--kind=gallery"
+    - "--max-age-hours=24"
+
 autoscaling:
   enabled: false
 
