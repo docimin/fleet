@@ -1,10 +1,12 @@
-{{- if .Values.cronjob.enabled }}
+{{- range .Values.cronjobs }}
+{{- if .enabled }}
+---
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: {{ .Values.name }}-orphan-sweep
+  name: {{ $.Values.name }}-{{ .name }}
 spec:
-  schedule: {{ .Values.cronjob.schedule | quote }}
+  schedule: {{ .schedule | quote }}
   concurrencyPolicy: Forbid
   startingDeadlineSeconds: 300
   successfulJobsHistoryLimit: 3
@@ -15,32 +17,32 @@ spec:
       template:
         metadata:
           labels:
-            app: {{ .Values.name }}
-            job: orphan-sweep
+            app: {{ $.Values.name }}
+            job: {{ .name }}
         spec:
-          serviceAccountName: {{ .Values.serviceAccount.name }}
+          serviceAccountName: {{ $.Values.serviceAccount.name }}
           securityContext:
             runAsNonRoot: true
             runAsUser: 1001
             fsGroup: 1001
           restartPolicy: Never
           containers:
-            - name: {{ .Values.name }}-orphan-sweep
+            - name: {{ $.Values.name }}-{{ .name }}
               securityContext:
                 allowPrivilegeEscalation: false
                 capabilities:
                   drop:
                     - ALL
-              image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
-              imagePullPolicy: {{ .Values.image.pullPolicy }}
-              command: ["bun", "run", "scripts/sweep-orphans.ts"]
-              {{- with .Values.cronjob.args }}
+              image: {{ $.Values.image.repository }}:{{ $.Values.image.tag }}
+              imagePullPolicy: {{ $.Values.image.pullPolicy }}
+              command: {{ toJson .command }}
+              {{- with .args }}
               args:
                 {{- toYaml . | nindent 16 }}
               {{- end }}
               envFrom:
                 - secretRef:
-                    name: {{ if .Values.externalSecret.enabled }}{{ .Values.externalSecret.targetSecretName }}{{ else }}{{ .Values.secrets.name }}{{ end }}
+                    name: {{ if $.Values.externalSecret.enabled }}{{ $.Values.externalSecret.targetSecretName }}{{ else }}{{ $.Values.secrets.name }}{{ end }}
               volumeMounts:
                 - name: tmp
                   mountPath: /tmp
@@ -55,7 +57,8 @@ spec:
             - name: tmp
               emptyDir: {}
           imagePullSecrets:
-            {{- range .Values.secrets.imagePullSecrets }}
+            {{- range $.Values.secrets.imagePullSecrets }}
             - name: {{ .name }}
             {{- end }}
+{{- end }}
 {{- end }}

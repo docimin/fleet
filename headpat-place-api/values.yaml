@@ -70,14 +70,23 @@ probes:
     failureThreshold: 3
     successThreshold: 1
 
-cronjob:
+cronjobs:
   # Sweeps orphaned storage objects: files uploaded to S3 but never linked to a
   # row (broken/abandoned uploads), across all media kinds. The 24h grace period
   # protects in-flight uploads; only objects orphaned longer than that are removed.
-  enabled: true
-  schedule: "0 3 * * *"
-  args:
-    - "--max-age-hours=24"
+  - name: orphan-sweep
+    enabled: true
+    schedule: "0 3 * * *"
+    command: ["bun", "run", "scripts/sweep-orphans.ts"]
+    args:
+      - "--max-age-hours=24"
+  # Notifies attendees who opted in to a reminder for events starting soon.
+  - name: event-reminders
+    enabled: true
+    schedule: "*/15 * * * *"
+    command: ["bun", "run", "scripts/send-event-reminders.ts"]
+    args:
+      - "--within-hours=24"
 
 autoscaling:
   enabled: false
