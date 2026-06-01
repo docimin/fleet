@@ -7,6 +7,10 @@ image:
   tag: "0.1.0"
   pullPolicy: Always
 
+redis:
+  enabled: true
+  image: redis:7-alpine
+
 service:
   type: ClusterIP
   port: 80
