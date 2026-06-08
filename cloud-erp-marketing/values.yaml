@@ -4,7 +4,7 @@ name: cloud-erp-marketing
 
 image:
   repository: harbor.fayevr.dev/fleet/cloud-erp-marketing
-  tag: "0.0.2"
+  tag: "0.0.3"
   pullPolicy: Always
 
 service:
@@ -18,13 +18,13 @@ ingress:
   annotations:
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
   hosts:
-    - host: cloud-erp.dev
+    - host: erpmarketing.headpat.dev
       paths:
         - path: "/"
           pathType: Prefix
   tls:
     - hosts:
-        - cloud-erp.dev
+        - erpmarketing.headpat.dev
       secretName: cloud-erp-marketing-tls
 
 externalSecret:
