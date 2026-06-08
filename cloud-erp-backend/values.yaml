@@ -90,3 +90,12 @@ autoscaling:
 pdb:
   enabled: false
   minAvailable: 1
+
+# Pre-upgrade DB migration Job. Runs once per `helm upgrade`, before the new
+# pods roll, applying base-track migrations to every active tenant + each
+# on-activation module track (packaging) to the tenants that have it active.
+# A failure blocks the rollout. Not run on first install.
+migrate:
+  enabled: true
+  backoffLimit: 1
+  timeoutSeconds: 900
