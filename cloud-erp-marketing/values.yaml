@@ -27,8 +27,11 @@ ingress:
         - erpmarketing.headpat.dev
       secretName: cloud-erp-marketing-tls
 
+# Marketing needs no runtime secrets (only PORT). Disabled — and the
+# vault-cloud-erp store is not currently healthy. Re-enable if marketing
+# ever needs env from Vault.
 externalSecret:
-  enabled: true
+  enabled: false
   refreshInterval: "5m"
   storeRef:
     kind: ClusterSecretStore
