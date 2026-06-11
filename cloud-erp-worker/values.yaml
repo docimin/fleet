@@ -10,7 +10,7 @@ name: cloud-erp-worker
 # separate build. Keep the tag in lockstep with cloud-erp-backend.
 image:
   repository: harbor.fayevr.dev/fleet/cloud-erp-backend
-  tag: "0.0.6"
+  tag: "0.0.7"
   pullPolicy: Always
 
 # The process still serves /api/v1/health on this port for k8s probes;
