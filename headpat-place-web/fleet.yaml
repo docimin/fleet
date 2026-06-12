@@ -1,0 +1,6 @@
+namespace: headpat-place
+helm:
+  releaseName: headpat-place-web
+  chart: .
+  valuesFiles:
+    - values.yaml

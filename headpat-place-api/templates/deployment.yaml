@@ -40,6 +40,19 @@ spec:
           env:
             - name: PORT
               value: {{ .Values.service.targetPort | quote }}
+            {{- if .Values.postgres.enabled }}
+            # DATABASE_URL comes straight from the CNPG-generated app secret so
+            # the password rotates with the cluster (not stored in Vault).
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.postgres.name }}-app
+                  key: uri
+            {{- end }}
+            {{- if .Values.redis.enabled }}
+            - name: REDIS_URL
+              value: "redis://{{ .Values.name }}-redis:6379"
+            {{- end }}
           envFrom:
             - secretRef:
                 name: {{ if .Values.externalSecret.enabled }}{{ .Values.externalSecret.targetSecretName }}{{ else }}{{ .Values.secrets.name }}{{ end }}

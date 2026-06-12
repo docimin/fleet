@@ -11,6 +11,17 @@ redis:
   enabled: true
   image: redis:7-alpine
 
+postgres:
+  enabled: true
+  name: headpat-place-pg
+  instances: 1
+  imageName: ghcr.io/cloudnative-pg/postgresql:18.3-system-trixie
+  database: headpat
+  owner: headpat
+  storage:
+    size: 10Gi
+    storageClass: ceph-rbd-kubernetes
+
 service:
   type: ClusterIP
   port: 80
@@ -22,13 +33,13 @@ ingress:
   annotations:
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
   hosts:
-    - host: api-staging.headpat.place
+    - host: api.headpat.place
       paths:
         - path: "/"
           pathType: Prefix
   tls:
     - hosts:
-        - api-staging.headpat.place
+        - api.headpat.place
       secretName: headpat-place-api-tls-secret
 
 externalSecret:
