@@ -37,7 +37,7 @@ externalSecret:
   refreshInterval: "1h"
   storeRef:
     kind: ClusterSecretStore
-    name: vault-apps-panel
+    name: vault-headpat
   remoteRef:
     key: headpat-place/web-env
   targetSecretName: headpat-place-web-env

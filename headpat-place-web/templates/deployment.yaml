@@ -42,6 +42,13 @@ spec:
               value: {{ .Values.service.targetPort | quote }}
             - name: HOSTNAME
               value: "0.0.0.0"
+            # Read-only rootfs: keep bun's runtime writes inside the /tmp emptyDir.
+            - name: BUN_RUNTIME_TRANSPILER_CACHE_PATH
+              value: "0"
+            - name: HOME
+              value: "/tmp"
+            - name: TMPDIR
+              value: "/tmp"
           envFrom:
             - secretRef:
                 name: {{ if .Values.externalSecret.enabled }}{{ .Values.externalSecret.targetSecretName }}{{ else }}{{ .Values.secrets.name }}{{ end }}
@@ -59,6 +66,9 @@ spec:
             httpGet:
               path: {{ .Values.probes.liveness.path }}
               port: {{ .Values.service.targetPort }}
+              httpHeaders:
+                - name: Host
+                  value: {{ (index .Values.ingress.hosts 0).host }}
             initialDelaySeconds: {{ .Values.probes.liveness.initialDelaySeconds }}
             periodSeconds: {{ .Values.probes.liveness.periodSeconds }}
             timeoutSeconds: {{ .Values.probes.liveness.timeoutSeconds }}
@@ -68,6 +78,9 @@ spec:
             httpGet:
               path: {{ .Values.probes.readiness.path }}
               port: {{ .Values.service.targetPort }}
+              httpHeaders:
+                - name: Host
+                  value: {{ (index .Values.ingress.hosts 0).host }}
             initialDelaySeconds: {{ .Values.probes.readiness.initialDelaySeconds }}
             periodSeconds: {{ .Values.probes.readiness.periodSeconds }}
             timeoutSeconds: {{ .Values.probes.readiness.timeoutSeconds }}
