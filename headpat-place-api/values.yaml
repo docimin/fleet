@@ -11,6 +11,11 @@ redis:
   enabled: true
   image: redis:7-alpine
 
+migrate:
+  enabled: true
+  tag: "0.1.0-migrate"
+  backoffLimit: 3
+
 postgres:
   enabled: true
   name: headpat-place-pg
