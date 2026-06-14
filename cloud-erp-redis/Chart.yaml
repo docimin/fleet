@@ -1,0 +1,5 @@
+apiVersion: v2
+name: cloud-erp-redis
+description: Cloud ERP Redis (persistent, single node) — cache + BullMQ queues + rate limiting
+version: 0.1.0
+type: application

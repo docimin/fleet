@@ -1,0 +1,20 @@
+name: cloud-erp-redis
+image: redis:7.4-alpine
+
+# noeviction is REQUIRED by BullMQ — if Redis evicts keys under memory
+# pressure, queued jobs are silently lost. Cache keys carry TTLs so they
+# expire rather than needing eviction. maxmemory stays below the
+# container limit so Redis errors (OOM) instead of being OOM-killed.
+maxmemory: "400mb"
+
+storage:
+  size: 2Gi
+  storageClass: ceph-rbd-kubernetes
+
+resources:
+  limits:
+    cpu: "500m"
+    memory: 512Mi
+  requests:
+    cpu: "50m"
+    memory: 128Mi

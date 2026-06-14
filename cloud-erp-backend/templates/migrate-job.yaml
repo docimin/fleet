@@ -1,0 +1,65 @@
+{{- if .Values.migrate.enabled }}
+# Database migration Job — runs as a Helm pre-upgrade hook, ONCE per release,
+# before the new backend pods take traffic. It applies the base migration track
+# to every active tenant plus each on-activation module track (e.g. packaging)
+# to the tenants that have it active. A failure fails the hook and blocks the
+# rollout, so the old version keeps running on the old schema. It is NOT run on
+# first install (no tenants yet, and the env Secret is created during install).
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Values.name }}-migrate-{{ .Release.Revision }}
+  labels:
+    app: {{ .Values.name }}
+    component: migrate
+  annotations:
+    "helm.sh/hook": pre-upgrade
+    "helm.sh/hook-weight": "-5"
+    # Clean the prior Job before creating a new one; delete on success but
+    # KEEP it on failure so `kubectl logs job/...` is available for debugging.
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  backoffLimit: {{ .Values.migrate.backoffLimit | default 1 }}
+  activeDeadlineSeconds: {{ .Values.migrate.timeoutSeconds | default 900 }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.name }}
+        component: migrate
+    spec:
+      restartPolicy: Never
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        fsGroup: 1001
+      containers:
+        - name: migrate
+          image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          command: ["bun", "run", "db:migrate:all"]
+          envFrom:
+            - secretRef:
+                name: {{ if .Values.externalSecret.enabled }}{{ .Values.externalSecret.targetSecretName }}{{ else }}{{ .Values.secrets.name }}{{ end }}
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+      volumes:
+        - name: tmp
+          emptyDir: {}
+      imagePullSecrets:
+        {{- range .Values.secrets.imagePullSecrets }}
+        - name: {{ .name }}
+        {{- end }}
+{{- end }}

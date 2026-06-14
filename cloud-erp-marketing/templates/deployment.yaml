@@ -45,6 +45,9 @@ spec:
           envFrom:
             - secretRef:
                 name: {{ if .Values.externalSecret.enabled }}{{ .Values.externalSecret.targetSecretName }}{{ else }}{{ .Values.secrets.name }}{{ end }}
+                # Marketing reads no runtime secrets (only PORT, set above), so
+                # a missing env Secret must not crash the pod.
+                optional: true
           volumeMounts:
             - name: tmp
               mountPath: /tmp

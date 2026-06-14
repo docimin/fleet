@@ -1,0 +1,34 @@
+cluster:
+  name: erp-pg
+  instances: 3
+  # Match the image the apps-panel cluster runs (PG 18.3).
+  image: ghcr.io/cloudnative-pg/postgresql:18.3-system-trixie
+  storage:
+    size: 10Gi
+    storageClass: ceph-rbd-kubernetes
+  # Control DB for cloud-erp. Tenant DBs are created dynamically by the
+  # backend's provisioning flow (CREATE DATABASE), which is why the
+  # superuser must be reachable — see enableSuperuserAccess below.
+  database: mgmt
+  owner: erp
+  # Additional databases to create alongside the bootstrap one (CNPG
+  # Database CRs). Empty for the tenants cluster — tenant DBs are created
+  # dynamically by the backend via CREATE DATABASE.
+  extraDatabases: []
+  # cloud-erp's tenant provisioning connects as the postgres superuser to
+  # CREATE DATABASE / CREATE ROLE per tenant. CNPG only materialises the
+  # `<cluster>-superuser` secret when this is true.
+  enableSuperuserAccess: true
+  resources:
+    limits:
+      cpu: "1000m"
+      memory: 1Gi
+    requests:
+      cpu: "100m"
+      memory: 256Mi
+
+# Always-on pod with psql + the cluster's superuser credentials, for
+# ad-hoc scripts: kubectl -n <ns> exec -it deploy/erp-pg-client -- psql
+# or pipe a file: ... exec -i deploy/erp-pg-client -- psql < script.sql
+psqlClient:
+  enabled: true
