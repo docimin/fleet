@@ -4,7 +4,7 @@ name: dondevil-de
 
 image:
   repository: harbor.fayevr.dev/fleet/dondevil-de
-  tag: "1.1.0"
+  tag: "1.1.1"
   pullPolicy: Always
 
 service:
