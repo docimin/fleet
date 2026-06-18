@@ -47,13 +47,6 @@ secrets:
   imagePullSecrets:
     - name: harbor-secret
 
-# Plain (non-secret) env vars merged into the container env. MARKETING_URL is a
-# public origin used for CORS/CSRF allowlisting + status-notification links.
-# Set here (not vault) because the vault-apps-panel store is currently broken;
-# once it is fixed this can move into the vault secret instead.
-extraEnv:
-  MARKETING_URL: "https://headpat.space"
-
 resources:
   limits:
     memory: "1Gi"
