@@ -83,7 +83,7 @@ probes:
 
 # Marketing is read-only and stateless, so HPA is reasonable to leave on.
 autoscaling:
-  enabled: true
+  enabled: false
   minReplicas: 1
   maxReplicas: 3
   targetCPUUtilizationPercentage: 70
