@@ -57,11 +57,11 @@ basicAuth:
 
 resources:
   limits:
-    memory: "256Mi"
-    cpu: "300m"
+    memory: "1Gi"
+    cpu: "1000m"
   requests:
-    memory: "96Mi"
-    cpu: "50m"
+    memory: "256Mi"
+    cpu: "250m"
 
 podAnnotations: {}
 
