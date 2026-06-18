@@ -4,7 +4,7 @@ name: apps-panel-marketing
 
 image:
   repository: harbor.fayevr.dev/fleet/apps-panel-marketing
-  tag: "0.2.2"
+  tag: "0.3.1"
   pullPolicy: Always
 
 service:
@@ -35,7 +35,7 @@ ingress:
 # Marketing has minimal runtime env (panel URL, analytics keys). Pull from
 # the same store the panel uses; key path is separate so values can differ.
 externalSecret:
-  enabled: true
+  enabled: false
   refreshInterval: "5m"
   storeRef:
     kind: ClusterSecretStore
@@ -48,6 +48,12 @@ secrets:
   name: apps-panel-marketing-env
   imagePullSecrets:
     - name: harbor-secret
+
+# HTTP basic-auth gate (Traefik middleware) for preview/testing.
+basicAuth:
+  enabled: true
+  realm: "Headpat preview"
+  users: "faye:$2y$05$iQzIJh3r3waJ9gIIhpcjE.tnxDwpXipzfa3UNeyR8nwwDv.UfAcxG"
 
 resources:
   limits:

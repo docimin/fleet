@@ -5,6 +5,9 @@ metadata:
   name: {{ .Values.name }}-ingress
   annotations:
     {{- toYaml .Values.ingress.annotations | nindent 4 }}
+    {{- if .Values.basicAuth.enabled }}
+    traefik.ingress.kubernetes.io/router.middlewares: {{ .Release.Namespace }}-{{ .Values.name }}-basicauth@kubernetescrd
+    {{- end }}
 spec:
   ingressClassName: {{ .Values.ingress.className }}
   rules:
