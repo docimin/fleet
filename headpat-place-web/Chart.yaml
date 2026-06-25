@@ -2,5 +2,5 @@ apiVersion: v2
 name: headpat-place-web
 description: headpat.place web frontend
 type: application
-version: 0.1.9
-appVersion: "0.1.9"
+version: 0.1.10
+appVersion: "0.1.10"

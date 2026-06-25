@@ -4,7 +4,7 @@ name: headpat-place-web
 
 image:
   repository: harbor.fayevr.dev/fleet/headpat-place-web
-  tag: "0.1.9"
+  tag: "0.1.10"
   pullPolicy: Always
 
 service:
