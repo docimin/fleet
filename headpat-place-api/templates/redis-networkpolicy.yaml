@@ -1,0 +1,24 @@
+{{- if .Values.redis.enabled }}
+# Redis has no auth, so restrict who can reach it on the network: only pods in
+# this namespace (the api, its cronjobs and the migrate job). Pods in other
+# namespaces can no longer connect to it. No-op if the CNI doesn't enforce
+# NetworkPolicy; never blocks intra-namespace traffic.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ .Values.name }}-redis
+spec:
+  podSelector:
+    matchLabels:
+      app: {{ .Values.name }}-redis
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ .Release.Namespace }}
+      ports:
+        - protocol: TCP
+          port: 6379
+{{- end }}
