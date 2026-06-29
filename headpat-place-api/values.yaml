@@ -4,7 +4,7 @@ name: headpat-place-api
 
 image:
   repository: harbor.fayevr.dev/fleet/headpat-place-api
-  tag: "0.1.7"
+  tag: "0.1.8"
   pullPolicy: Always
 
 redis:
