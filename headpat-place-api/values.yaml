@@ -4,7 +4,7 @@ name: headpat-place-api
 
 image:
   repository: harbor.fayevr.dev/fleet/headpat-place-api
-  tag: "0.1.10"
+  tag: "0.1.11"
   pullPolicy: Always
 
 redis:
@@ -13,7 +13,7 @@ redis:
 
 migrate:
   enabled: true
-  tag: "0.1.10-migrate"
+  tag: "0.1.11-migrate"
   backoffLimit: 3
 
 postgres:
