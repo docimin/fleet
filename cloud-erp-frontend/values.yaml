@@ -4,7 +4,7 @@ name: cloud-erp-frontend
 
 image:
   repository: harbor.fayevr.dev/fleet/cloud-erp-frontend
-  tag: "0.0.11"
+  tag: "0.0.12"
   pullPolicy: Always
 
 service:
