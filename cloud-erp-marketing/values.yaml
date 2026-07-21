@@ -4,7 +4,7 @@ name: cloud-erp-marketing
 
 image:
   repository: harbor.fayevr.dev/fleet/cloud-erp-marketing
-  tag: "0.0.4"
+  tag: "0.0.6"
   pullPolicy: Always
 
 service:
