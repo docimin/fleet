@@ -4,7 +4,7 @@ name: apps-panel-backend
 
 image:
   repository: harbor.fayevr.dev/fleet/apps-panel-backend
-  tag: "0.19.38"
+  tag: "0.19.39"
   pullPolicy: Always
 
 service:
