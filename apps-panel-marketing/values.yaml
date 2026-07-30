@@ -51,7 +51,7 @@ secrets:
 
 # HTTP basic-auth gate (Traefik middleware) for preview/testing.
 basicAuth:
-  enabled: true
+  enabled: false
   realm: "Headpat preview"
   users: "faye:$2y$05$BlTvttKJsGkLmTmyIL3DZe6WEXUtWI.esD81UALuC0dXDGccBfOAa"
 
