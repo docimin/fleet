@@ -51,10 +51,12 @@ secrets:
   imagePullSecrets:
     - name: harbor-secret
 
+# Same burst profile as marketing: SSR spikes on an idle pod, so the CPU ceiling
+# sits well above the request to avoid throttling page renders.
 resources:
   limits:
     memory: "512Mi"
-    cpu: "500m"
+    cpu: "2000m"
   requests:
     memory: "192Mi"
     cpu: "100m"

@@ -55,10 +55,13 @@ basicAuth:
   realm: "Headpat preview"
   users: "faye:$2y$05$BlTvttKJsGkLmTmyIL3DZe6WEXUtWI.esD81UALuC0dXDGccBfOAa"
 
+# SSR renders are short CPU bursts on an otherwise idle pod (avg ~0.005 cores).
+# A tight limit throttles those bursts and stalls cold page loads, so the ceiling
+# is deliberately far above the request - the request is what reserves capacity.
 resources:
   limits:
     memory: "1Gi"
-    cpu: "500m"
+    cpu: "2000m"
   requests:
     memory: "256Mi"
     cpu: "250m"
