@@ -4,7 +4,7 @@ name: apps-panel-backend
 
 image:
   repository: harbor.fayevr.dev/fleet/apps-panel-backend
-  tag: "0.19.69"
+  tag: "0.19.70"
   pullPolicy: Always
 
 service:
@@ -26,6 +26,12 @@ ingress:
     - host: api.headpat.space
       paths:
         - path: "/api"
+          pathType: Prefix
+        # Public API reference. Routed separately because everything else on this
+        # host lives under /api.
+        - path: "/docs"
+          pathType: Prefix
+        - path: "/openapi.json"
           pathType: Prefix
   tls:
     - hosts:
