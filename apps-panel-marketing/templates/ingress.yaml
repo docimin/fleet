@@ -5,8 +5,15 @@ metadata:
   name: {{ .Values.name }}-ingress
   annotations:
     {{- toYaml .Values.ingress.annotations | nindent 4 }}
+    {{- $mw := list }}
+    {{- if .Values.httpsRedirect.enabled }}
+    {{- $mw = append $mw (printf "%s-%s-redirect-https@kubernetescrd" .Release.Namespace .Values.name) }}
+    {{- end }}
     {{- if .Values.basicAuth.enabled }}
-    traefik.ingress.kubernetes.io/router.middlewares: {{ .Release.Namespace }}-{{ .Values.name }}-basicauth@kubernetescrd
+    {{- $mw = append $mw (printf "%s-%s-basicauth@kubernetescrd" .Release.Namespace .Values.name) }}
+    {{- end }}
+    {{- if $mw }}
+    traefik.ingress.kubernetes.io/router.middlewares: {{ join "," $mw }}
     {{- end }}
 spec:
   ingressClassName: {{ .Values.ingress.className }}

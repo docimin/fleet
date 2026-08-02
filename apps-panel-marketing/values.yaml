@@ -49,6 +49,11 @@ secrets:
   imagePullSecrets:
     - name: harbor-secret
 
+# Per-ingress, not a Traefik entrypoint redirect: a global one would break
+# HTTP-01 ACME challenges for customer custom domains.
+httpsRedirect:
+  enabled: true
+
 # HTTP basic-auth gate (Traefik middleware) for preview/testing.
 basicAuth:
   enabled: false
