@@ -17,6 +17,11 @@ ingress:
   className: "traefik"
   annotations:
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    # P-256 is ~RSA-3072 strength with far cheaper handshakes and a smaller
+    # cert, unlike RSA-4096 which only buys handshake cost.
+    cert-manager.io/private-key-algorithm: ECDSA
+    cert-manager.io/private-key-size: "256"
+    cert-manager.io/private-key-rotation-policy: Always
   hosts:
     - host: panel.headpat.space
       paths:
