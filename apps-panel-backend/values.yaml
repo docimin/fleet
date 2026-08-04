@@ -95,9 +95,50 @@ autoscaling:
   targetCPUUtilizationPercentage: 70
   targetMemoryUtilizationPercentage: 80
 
+# Stays off while replicaCount is 1: minAvailable 1 against a single replica
+# blocks node drains outright. Turn on together with the second replica.
 pdb:
   enabled: false
   minAvailable: 1
+
+# Ready for the second replica; harmless at 1. The spread is hard so two
+# replicas can never share a node, the anti-affinity is only a preference so it
+# never blocks scheduling.
+topologySpreadConstraints:
+  - maxSkew: 1
+    topologyKey: kubernetes.io/hostname
+    whenUnsatisfiable: DoNotSchedule
+    labelSelector:
+      matchLabels:
+        app: apps-panel-backend
+
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          topologyKey: kubernetes.io/hostname
+          labelSelector:
+            matchExpressions:
+              - key: app
+                operator: In
+                values:
+                  - apps-panel-frontend
+                  - apps-panel-marketing
+                  - apps-panel-worker
+
+# A node is marked NotReady after 40s; the default then waits a further 300s
+# before moving the pod. 60s cuts API downtime from ~6min to ~2min and is still
+# long enough to ride out a brief control-plane blip.
+tolerations:
+  - key: node.kubernetes.io/not-ready
+    operator: Exists
+    effect: NoExecute
+    tolerationSeconds: 60
+  - key: node.kubernetes.io/unreachable
+    operator: Exists
+    effect: NoExecute
+    tolerationSeconds: 60
 
 # ServiceAccount + RBAC. The fine-grained permissions (apps-panel-cluster +
 # apps-panel-tenant ClusterRoles) live in infra/apps-cluster/panel-rbac-v2.yaml

@@ -1,4 +1,4 @@
-replicaCount: 1
+replicaCount: 2
 
 name: apps-panel-frontend
 
@@ -92,5 +92,45 @@ autoscaling:
   targetMemoryUtilizationPercentage: 80
 
 pdb:
-  enabled: false
+  enabled: true
   minAvailable: 1
+
+# Both replicas landing on one node would defeat the point, so the spread is a
+# hard constraint: 3 nodes and 2 replicas stays satisfiable even with a node
+# down. The anti-affinity is only a preference - it keeps the panel's
+# components off a single node without ever blocking a pod from starting.
+topologySpreadConstraints:
+  - maxSkew: 1
+    topologyKey: kubernetes.io/hostname
+    whenUnsatisfiable: DoNotSchedule
+    labelSelector:
+      matchLabels:
+        app: apps-panel-frontend
+
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          topologyKey: kubernetes.io/hostname
+          labelSelector:
+            matchExpressions:
+              - key: app
+                operator: In
+                values:
+                  - apps-panel-backend
+                  - apps-panel-marketing
+                  - apps-panel-worker
+
+# A node is marked NotReady after 40s; the default then waits a further 300s
+# before moving the pod. 60s cuts recovery from ~6min to ~2min and is still
+# long enough to ride out a brief control-plane blip.
+tolerations:
+  - key: node.kubernetes.io/not-ready
+    operator: Exists
+    effect: NoExecute
+    tolerationSeconds: 60
+  - key: node.kubernetes.io/unreachable
+    operator: Exists
+    effect: NoExecute
+    tolerationSeconds: 60

@@ -51,3 +51,22 @@ env:
 # worker also needs (provision retries, bandwidth checks all hit the k8s API).
 serviceAccount:
   name: apps-panel
+
+# Preference only, so the singleton is never left unschedulable. Deliberately
+# no shortened not-ready toleration here: on a network partition the old worker
+# may still be running and reaching the DB, and evicting it sooner just widens
+# the window where two workers run every cron loop at once.
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          topologyKey: kubernetes.io/hostname
+          labelSelector:
+            matchExpressions:
+              - key: app
+                operator: In
+                values:
+                  - apps-panel-backend
+                  - apps-panel-frontend
+                  - apps-panel-marketing
