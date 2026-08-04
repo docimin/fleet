@@ -5,6 +5,9 @@ metadata:
   name: {{ .Values.name }}-ingress
   annotations:
     {{- toYaml .Values.ingress.annotations | nindent 4 }}
+    {{- if .Values.httpsRedirect.enabled }}
+    traefik.ingress.kubernetes.io/router.middlewares: {{ printf "%s-%s-redirect-https@kubernetescrd" .Release.Namespace .Values.name }}
+    {{- end }}
 spec:
   ingressClassName: {{ .Values.ingress.className }}
   rules:

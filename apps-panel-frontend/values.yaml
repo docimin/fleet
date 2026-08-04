@@ -16,6 +16,9 @@ ingress:
   enabled: true
   className: "traefik"
   annotations:
+    # Without this the router binds to every Traefik entrypoint, so the panel
+    # also answered on the 250 tenant tcp-* ports, none of which have TLS.
+    traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
     # P-256 is ~RSA-3072 strength with far cheaper handshakes and a smaller
     # cert, unlike RSA-4096 which only buys handshake cost.
@@ -90,6 +93,12 @@ autoscaling:
   maxReplicas: 5
   targetCPUUtilizationPercentage: 70
   targetMemoryUtilizationPercentage: 80
+
+# Login credentials and session cookies were being served over cleartext :80.
+# cert-manager builds its own solver Ingress for HTTP-01, which does not carry
+# this middleware, so ACME challenges still answer in the clear as required.
+httpsRedirect:
+  enabled: true
 
 pdb:
   enabled: true
