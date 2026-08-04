@@ -13,4 +13,12 @@ spec:
     initdb:
       database: {{ .Values.postgres.database }}
       owner: {{ .Values.postgres.owner }}
+{{- if .Values.postgres.backup.enabled }}
+  plugins:
+    - name: barman-cloud.cloudnative-pg.io
+      enabled: true
+      isWALArchiver: true
+      parameters:
+        barmanObjectName: {{ .Values.postgres.name }}-store
+{{- end }}
 {{- end }}

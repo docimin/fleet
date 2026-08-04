@@ -25,5 +25,14 @@ cluster:
       cpu: "50m"
       memory: 128Mi
 
+backup:
+  enabled: true
+  bucket: k8s-apps
+  endpointURL: https://s3.headpat.space
+  vaultKey: apps-panel/s3-backup-credentials
+  secretStore: vault-apps-panel
+  retention: 30d
+  schedule: "0 30 3 * * *"
+
 psqlClient:
   enabled: true

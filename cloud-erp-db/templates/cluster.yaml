@@ -23,6 +23,14 @@ spec:
       max_worker_processes: "32"
   resources:
     {{- toYaml .Values.cluster.resources | nindent 4 }}
+{{- if .Values.backup.enabled }}
+  plugins:
+    - name: barman-cloud.cloudnative-pg.io
+      enabled: true
+      isWALArchiver: true
+      parameters:
+        barmanObjectName: {{ .Values.cluster.name }}-store
+{{- end }}
 {{- range .Values.cluster.extraDatabases }}
 ---
 apiVersion: postgresql.cnpg.io/v1

@@ -26,6 +26,16 @@ postgres:
   storage:
     size: 10Gi
     storageClass: ceph-rbd-kubernetes
+  # Single instance, so there is no replica to fall back on: without WAL
+  # archiving plus a base backup, a lost PVC is unrecoverable.
+  backup:
+    enabled: true
+    bucket: k8s-apps
+    endpointURL: https://s3.headpat.space
+    vaultKey: apps-panel/s3-backup-credentials
+    secretStore: vault-apps-panel
+    retention: 30d
+    schedule: "0 45 3 * * *"
 
 service:
   type: ClusterIP

@@ -27,6 +27,21 @@ cluster:
       cpu: "100m"
       memory: 256Mi
 
+# Streaming replicas cover node and disk loss, not a bad migration or a DROP -
+# that damage reaches every replica instantly. WAL archiving plus a daily base
+# backup is what makes point-in-time recovery possible.
+#
+# Staggered off apps-panel-db's 03:00 so the four clusters don't all upload at
+# once. Schedule is CNPG's 6-field form (seconds first).
+backup:
+  enabled: true
+  bucket: k8s-apps
+  endpointURL: https://s3.headpat.space
+  vaultKey: apps-panel/s3-backup-credentials
+  secretStore: vault-apps-panel
+  retention: 30d
+  schedule: "0 15 3 * * *"
+
 # Always-on pod with psql + the cluster's superuser credentials, for
 # ad-hoc scripts: kubectl -n <ns> exec -it deploy/erp-pg-client -- psql
 # or pipe a file: ... exec -i deploy/erp-pg-client -- psql < script.sql

@@ -1,0 +1,63 @@
+{{- if .Values.backup.enabled }}
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: {{ .Values.cluster.name }}-backup-creds
+spec:
+  refreshInterval: 1h
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: {{ .Values.backup.secretStore }}
+  target:
+    name: {{ .Values.cluster.name }}-backup-creds
+    creationPolicy: Owner
+    deletionPolicy: Retain
+  dataFrom:
+    - extract:
+        key: {{ .Values.backup.vaultKey }}
+---
+apiVersion: barmancloud.cnpg.io/v1
+kind: ObjectStore
+metadata:
+  name: {{ .Values.cluster.name }}-store
+spec:
+  # The plugin defaults the sidecar to 50m, which leaves the archiver throttled
+  # while it compresses and uploads every WAL segment. The limit is a ceiling,
+  # not a reservation, so raising it costs nothing at idle.
+  instanceSidecarConfiguration:
+    resources:
+      requests:
+        cpu: 50m
+        memory: 256Mi
+      limits:
+        cpu: 500m
+        memory: 256Mi
+  configuration:
+    destinationPath: s3://{{ .Values.backup.bucket }}/cnpg/{{ .Release.Namespace }}/{{ .Values.cluster.name }}/
+    endpointURL: {{ .Values.backup.endpointURL }}
+    s3Credentials:
+      accessKeyId:
+        name: {{ .Values.cluster.name }}-backup-creds
+        key: ACCESS_KEY_ID
+      secretAccessKey:
+        name: {{ .Values.cluster.name }}-backup-creds
+        key: ACCESS_SECRET_KEY
+    wal:
+      compression: gzip
+    data:
+      compression: gzip
+  retentionPolicy: {{ .Values.backup.retention }}
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: ScheduledBackup
+metadata:
+  name: {{ .Values.cluster.name }}-daily
+spec:
+  schedule: {{ .Values.backup.schedule | quote }}
+  backupOwnerReference: self
+  cluster:
+    name: {{ .Values.cluster.name }}
+  method: plugin
+  pluginConfiguration:
+    name: barman-cloud.cloudnative-pg.io
+{{- end }}
