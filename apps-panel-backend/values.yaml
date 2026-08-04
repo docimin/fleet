@@ -1,10 +1,10 @@
-replicaCount: 1
+replicaCount: 2
 
 name: apps-panel-backend
 
 image:
   repository: harbor.fayevr.dev/fleet/apps-panel-backend
-  tag: "0.19.80"
+  tag: "0.19.81"
   pullPolicy: Always
 
 service:
@@ -86,8 +86,9 @@ probes:
     failureThreshold: 3
     successThreshold: 1
 
-# Backend runs background cron jobs (sync, billing, bandwidth) so HPA on it is
-# typically off — scale by hand. Leave enabled if you want stateless scale.
+# The cron jobs live in apps-panel-worker, not here, so the backend is safe to
+# run at more than one replica. HPA stays off only because the load is steady;
+# scale by hand.
 autoscaling:
   enabled: false
   minReplicas: 1
@@ -95,15 +96,12 @@ autoscaling:
   targetCPUUtilizationPercentage: 70
   targetMemoryUtilizationPercentage: 80
 
-# Stays off while replicaCount is 1: minAvailable 1 against a single replica
-# blocks node drains outright. Turn on together with the second replica.
 pdb:
-  enabled: false
+  enabled: true
   minAvailable: 1
 
-# Ready for the second replica; harmless at 1. The spread is hard so two
-# replicas can never share a node, the anti-affinity is only a preference so it
-# never blocks scheduling.
+# The spread is hard so two replicas can never share a node, the anti-affinity
+# is only a preference so it never blocks scheduling.
 topologySpreadConstraints:
   - maxSkew: 1
     topologyKey: kubernetes.io/hostname
