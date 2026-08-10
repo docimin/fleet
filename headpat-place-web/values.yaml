@@ -72,3 +72,9 @@ autoscaling:
 
 pdb:
   enabled: false
+
+# Logins and session cookies must not travel over cleartext :80. cert-manager
+# builds its own solver Ingress for HTTP-01, which does not carry this
+# middleware, so ACME challenges still answer in the clear.
+httpsRedirect:
+  enabled: true
