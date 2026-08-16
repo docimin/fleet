@@ -1,0 +1,61 @@
+{{- if .Values.migrate.enabled }}
+# Applies drizzle migrations as a Helm pre-upgrade hook, once per release,
+# before the new pods take traffic. A failure fails the hook and blocks the
+# rollout, so the old version keeps running against the old schema. Not run on
+# first install — the env Secret is created during install.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Values.name }}-migrate-{{ .Release.Revision }}
+  labels:
+    app: {{ .Values.name }}
+    component: migrate
+  annotations:
+    "helm.sh/hook": pre-upgrade
+    "helm.sh/hook-weight": "-5"
+    # Delete on success but KEEP on failure so `kubectl logs job/...` works.
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  backoffLimit: {{ .Values.migrate.backoffLimit | default 1 }}
+  activeDeadlineSeconds: {{ .Values.migrate.timeoutSeconds | default 600 }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.name }}
+        component: migrate
+    spec:
+      restartPolicy: Never
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: migrate
+          image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["bun", "run", "db:migrate"]
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          envFrom:
+            - secretRef:
+                name: {{ if .Values.externalSecret.enabled }}{{ .Values.externalSecret.targetSecretName }}{{ else }}{{ .Values.secrets.name }}{{ end }}
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+      volumes:
+        - name: tmp
+          emptyDir: {}
+      imagePullSecrets:
+        {{- range .Values.secrets.imagePullSecrets }}
+        - name: {{ .name }}
+        {{- end }}
+{{- end }}

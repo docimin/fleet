@@ -1,0 +1,6 @@
+namespace: modmail
+helm:
+  releaseName: modmail
+  chart: .
+  valuesFiles:
+    - values.yaml

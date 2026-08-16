@@ -1,0 +1,124 @@
+# modmail v2 — one image, three commands: the bot (Discord gateway + internal
+# API), the dashboard (TanStack Start SSR server), and a pre-upgrade migration
+# Job. Unlike modmail-fyfu / modmail-mexify this deployment is multi-guild, so
+# there is one release rather than one per server.
+name: modmail
+
+image:
+  repository: harbor.fayevr.dev/fleet/modmail-v2
+  tag: "0.1.0"
+  pullPolicy: Always
+
+bot:
+  # Holds the Discord gateway connection and runs the scheduler loop. A second
+  # replica would process every event twice and fire duplicate auto-closes.
+  # Do not raise this without first moving the scheduler behind a lock.
+  replicaCount: 1
+  port: 4000
+  # The app defaults to binding 127.0.0.1, which would leave the API unreachable
+  # from the dashboard pod. Binding all interfaces is safe here because the bot
+  # Service is ClusterIP with no ingress.
+  host: "0.0.0.0"
+  resources:
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+    requests:
+      memory: "256Mi"
+      cpu: "100m"
+
+dashboard:
+  replicaCount: 2
+  port: 3000
+  resources:
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+    requests:
+      memory: "256Mi"
+      cpu: "100m"
+
+service:
+  type: ClusterIP
+  # public port of the dashboard Service; the bot Service is cluster-internal
+  # and always published on bot.port
+  port: 80
+
+ingress:
+  enabled: true
+  className: "traefik"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+  hosts:
+    - host: modmail.fayevr.dev
+      paths:
+        - path: "/"
+          pathType: Prefix
+  tls:
+    - hosts:
+        - modmail.fayevr.dev
+      secretName: modmail-tls-secret
+
+# Non-secret config, rendered as `env:` alongside `envFrom: secretRef`.
+# NODE_ENV=production makes the app reject a missing or localhost
+# BETTER_AUTH_URL / DASHBOARD_URL at boot, so both must be the public URL.
+env:
+  NODE_ENV: "production"
+  BETTER_AUTH_URL: "https://modmail.fayevr.dev"
+  DASHBOARD_URL: "https://modmail.fayevr.dev"
+
+# One Vault key feeds both workloads: they must agree on INTERNAL_API_SECRET
+# and DATABASE_URL. Expected keys: DATABASE_URL, DISCORD_CLIENT_ID,
+# DISCORD_CLIENT_SECRET, DISCORD_BOT_TOKEN, INTERNAL_API_SECRET,
+# BETTER_AUTH_SECRET.
+externalSecret:
+  enabled: true
+  refreshInterval: "1h"
+  storeRef:
+    kind: ClusterSecretStore
+    name: vault
+  remoteRef:
+    key: modmail/env
+  targetSecretName: modmail-env
+
+# Used when externalSecret.enabled is false — reference a Secret you created.
+secrets:
+  name: modmail-env
+  imagePullSecrets:
+    - name: harbor-secret
+
+# Runs once per `helm upgrade` before new pods take traffic. A failure fails the
+# hook and blocks the rollout, so the old version keeps serving. Migrations are
+# idempotent, so a re-run after a partial failure is safe.
+migrate:
+  enabled: true
+  backoffLimit: 1
+  timeoutSeconds: 600
+
+# The image declares `USER bun` by name, which kubelet cannot verify against
+# runAsNonRoot — runAsUser must be set explicitly and match the bun user (1000).
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  fsGroup: 1000
+
+probes:
+  liveness:
+    initialDelaySeconds: 60
+    periodSeconds: 15
+    timeoutSeconds: 5
+    failureThreshold: 3
+    successThreshold: 1
+  readiness:
+    initialDelaySeconds: 20
+    periodSeconds: 15
+    timeoutSeconds: 5
+    failureThreshold: 3
+    successThreshold: 1
+
+pdb:
+  enabled: false
+  minAvailable: 1
+
+podAnnotations: {}
