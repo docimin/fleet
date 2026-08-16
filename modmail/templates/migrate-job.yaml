@@ -38,9 +38,11 @@ spec:
             capabilities:
               drop:
                 - ALL
+          env:
+            {{- include "modmail.databaseUrlEnv" . | nindent 12 }}
           envFrom:
             - secretRef:
-                name: {{ if .Values.externalSecret.enabled }}{{ .Values.externalSecret.targetSecretName }}{{ else }}{{ .Values.secrets.name }}{{ end }}
+                name: {{ include "modmail.envSecretName" . }}
           volumeMounts:
             - name: tmp
               mountPath: /tmp

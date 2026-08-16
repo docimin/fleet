@@ -45,13 +45,14 @@ spec:
               value: {{ .Values.bot.host | quote }}
             - name: INTERNAL_API_PORT
               value: {{ .Values.bot.port | quote }}
+            {{- include "modmail.databaseUrlEnv" . | nindent 12 }}
             {{- range $k, $v := .Values.env }}
             - name: {{ $k }}
               value: {{ $v | quote }}
             {{- end }}
           envFrom:
             - secretRef:
-                name: {{ if .Values.externalSecret.enabled }}{{ .Values.externalSecret.targetSecretName }}{{ else }}{{ .Values.secrets.name }}{{ end }}
+                name: {{ include "modmail.envSecretName" . }}
           resources:
             {{- toYaml .Values.bot.resources | nindent 12 }}
           livenessProbe:

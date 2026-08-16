@@ -41,13 +41,14 @@ spec:
               value: {{ .Values.dashboard.port | quote }}
             - name: BOT_API_URL
               value: "http://{{ .Values.name }}-bot:{{ .Values.bot.port }}"
+            {{- include "modmail.databaseUrlEnv" . | nindent 12 }}
             {{- range $k, $v := .Values.env }}
             - name: {{ $k }}
               value: {{ $v | quote }}
             {{- end }}
           envFrom:
             - secretRef:
-                name: {{ if .Values.externalSecret.enabled }}{{ .Values.externalSecret.targetSecretName }}{{ else }}{{ .Values.secrets.name }}{{ end }}
+                name: {{ include "modmail.envSecretName" . }}
           resources:
             {{- toYaml .Values.dashboard.resources | nindent 12 }}
           livenessProbe:

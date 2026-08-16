@@ -67,10 +67,34 @@ env:
   BETTER_AUTH_URL: "https://modmail.fayevr.dev"
   DASHBOARD_URL: "https://modmail.fayevr.dev"
 
-# One Vault key feeds both workloads: they must agree on INTERNAL_API_SECRET
-# and DATABASE_URL. Expected keys: DATABASE_URL, DISCORD_CLIENT_ID,
-# DISCORD_CLIENT_SECRET, DISCORD_BOT_TOKEN, INTERNAL_API_SECRET,
-# BETTER_AUTH_SECRET.
+# CloudNativePG cluster. Requires the CNPG operator to be running — with only
+# the CRDs installed the Cluster is accepted but never reconciled, and the
+# `-app` Secret the workloads read DATABASE_URL from is never created.
+# Set enabled: false to point at an external database via Vault instead.
+postgres:
+  enabled: true
+  name: modmail-pg
+  instances: 3
+  image: ghcr.io/cloudnative-pg/postgresql:18.3-system-trixie
+  database: modmail
+  owner: modmail
+  # key in the generated <name>-app Secret holding the connection URI
+  secretKey: uri
+  storage:
+    size: 10Gi
+    storageClass: ceph-rbd-kubernetes
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "100m"
+    limits:
+      memory: "1Gi"
+      cpu: "1000m"
+
+# One Vault key feeds both workloads: they must agree on INTERNAL_API_SECRET.
+# Expected keys: DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET, DISCORD_BOT_TOKEN,
+# INTERNAL_API_SECRET, BETTER_AUTH_SECRET. DATABASE_URL comes from CNPG unless
+# postgres.enabled is false.
 externalSecret:
   enabled: true
   refreshInterval: "1h"

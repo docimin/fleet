@@ -1,0 +1,26 @@
+{{- if .Values.postgres.enabled }}
+# CloudNativePG cluster backing modmail. CNPG generates a `<name>-app` Secret
+# containing a ready-made `uri`, which the workloads consume as DATABASE_URL —
+# so the Vault key does not need to carry a connection string.
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: {{ .Values.postgres.name }}
+  labels:
+    app: {{ .Values.name }}
+    component: postgres
+spec:
+  instances: {{ .Values.postgres.instances }}
+  imageName: {{ .Values.postgres.image }}
+  storage:
+    size: {{ .Values.postgres.storage.size }}
+    storageClass: {{ .Values.postgres.storage.storageClass }}
+  bootstrap:
+    initdb:
+      database: {{ .Values.postgres.database }}
+      owner: {{ .Values.postgres.owner }}
+  {{- with .Values.postgres.resources }}
+  resources:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+{{- end }}
