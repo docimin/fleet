@@ -6,7 +6,7 @@ name: modmail
 
 image:
   repository: harbor.fayevr.dev/fleet/modmail-v2
-  tag: "0.1.2"
+  tag: "0.1.3"
   pullPolicy: Always
 
 bot:
