@@ -67,19 +67,20 @@ env:
   BETTER_AUTH_URL: "https://modmail.fayevr.dev"
   DASHBOARD_URL: "https://modmail.fayevr.dev"
 
-# CloudNativePG cluster. Requires the CNPG operator to be running — with only
-# the CRDs installed the Cluster is accepted but never reconciled, and the
-# `-app` Secret the workloads read DATABASE_URL from is never created.
+# CloudNativePG cluster. Sized like headpat-place-pg (single instance); raise
+# instances for HA. No barman-cloud ObjectStore yet, so there is no WAL
+# archiving or point-in-time recovery — every other CNPG cluster here has one.
 # Set enabled: false to point at an external database via Vault instead.
 postgres:
   enabled: true
   name: modmail-pg
-  instances: 3
+  instances: 1
   image: ghcr.io/cloudnative-pg/postgresql:18.3-system-trixie
   database: modmail
   owner: modmail
   # key in the generated <name>-app Secret holding the connection URI
   secretKey: uri
+  enablePDB: true
   storage:
     size: 10Gi
     storageClass: ceph-rbd-kubernetes
@@ -100,7 +101,7 @@ externalSecret:
   refreshInterval: "1h"
   storeRef:
     kind: ClusterSecretStore
-    name: vault
+    name: vault-modmail
   remoteRef:
     key: modmail/env
   targetSecretName: modmail-env

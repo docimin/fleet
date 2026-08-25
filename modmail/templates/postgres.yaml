@@ -15,10 +15,15 @@ spec:
   storage:
     size: {{ .Values.postgres.storage.size }}
     storageClass: {{ .Values.postgres.storage.storageClass }}
+  enablePDB: {{ .Values.postgres.enablePDB }}
+  enableSuperuserAccess: false
   bootstrap:
     initdb:
       database: {{ .Values.postgres.database }}
       owner: {{ .Values.postgres.owner }}
+      encoding: UTF8
+      localeCollate: C
+      localeCType: C
   {{- with .Values.postgres.resources }}
   resources:
     {{- toYaml . | nindent 4 }}
