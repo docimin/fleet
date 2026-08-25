@@ -6,7 +6,7 @@ name: modmail
 
 image:
   repository: harbor.fayevr.dev/fleet/modmail-v2
-  tag: "0.1.0"
+  tag: "0.1.1"
   pullPolicy: Always
 
 bot:
@@ -103,7 +103,7 @@ externalSecret:
     kind: ClusterSecretStore
     name: vault-modmail
   remoteRef:
-    key: modmail/env
+    key: vault-modmail
   targetSecretName: modmail-env
 
 # Used when externalSecret.enabled is false — reference a Secret you created.
