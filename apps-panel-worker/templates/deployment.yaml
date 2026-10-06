@@ -56,6 +56,15 @@ spec:
           volumeMounts:
             - name: tmp
               mountPath: /tmp
+          # No HTTP listener: the worker touches this file every 15s (needs
+          # backend >= the release that added the heartbeat to src/worker.ts).
+          livenessProbe:
+            exec:
+              command: ["sh", "-c", "find /tmp/worker-heartbeat -mmin -1 | grep -q ."]
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
           resources:
             limits:
               memory: {{ .Values.resources.limits.memory }}
