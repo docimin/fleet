@@ -31,7 +31,6 @@ ingress:
         - www.fayevr.dev
       secretName: fayevr-dev-tls-secret
 secrets:
-  name: fayevr-dev-variables
   imagePullSecrets:
     - name: harbor-secret
 
@@ -73,9 +72,3 @@ autoscaling:
 pdb:
   enabled: false
   minAvailable: 1
-
-externalSecret:
-  enabled: true
-  store: vault
-  vaultPath: fayevr-dev
-  refreshInterval: 1h
