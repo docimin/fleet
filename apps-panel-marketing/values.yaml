@@ -4,7 +4,7 @@ name: apps-panel-marketing
 
 image:
   repository: harbor.fayevr.dev/fleet/apps-panel-marketing
-  tag: "0.4.88"
+  tag: "0.4.89"
   pullPolicy: Always
 
 service:
