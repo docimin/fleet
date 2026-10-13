@@ -59,6 +59,12 @@ secrets:
 httpsRedirect:
   enabled: true
 
+# Lets `curl headpat.space` over plain http reach the home page text card
+# instead of the https redirect. Only curl on `/` matches.
+httpCurlCard:
+  enabled: true
+  host: headpat.space
+
 # HTTP basic-auth gate (Traefik middleware) for preview/testing.
 basicAuth:
   enabled: false

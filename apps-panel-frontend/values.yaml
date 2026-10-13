@@ -4,7 +4,7 @@ name: apps-panel-frontend
 
 image:
   repository: harbor.fayevr.dev/fleet/apps-panel-frontend
-  tag: "0.13.234"
+  tag: "0.13.235"
   pullPolicy: Always
 
 service:
@@ -99,6 +99,12 @@ autoscaling:
 # this middleware, so ACME challenges still answer in the clear as required.
 httpsRedirect:
   enabled: true
+
+# Lets `curl panel.headpat.space` over plain http reach the home page text card
+# instead of the https redirect. Only curl on `/` matches.
+httpCurlCard:
+  enabled: true
+  host: panel.headpat.space
 
 pdb:
   enabled: true
