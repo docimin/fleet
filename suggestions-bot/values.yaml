@@ -4,7 +4,7 @@ name: suggestions-bot
 
 image:
   repository: harbor.fayevr.dev/fleet/suggestions-bot
-  tag: "1.2.2"
+  tag: "1.2.3"
   pullPolicy: Always
 
 service:
@@ -18,7 +18,7 @@ secrets:
 
 resources:
   limits:
-    memory: "512Mi"
+    memory: "1Gi"
     cpu: "500m"
   requests:
     memory: "256Mi"
