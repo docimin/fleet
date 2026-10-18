@@ -1,0 +1,6 @@
+namespace: headpat-shop
+helm:
+  releaseName: headpat-shop-api
+  chart: .
+  valuesFiles:
+    - values.yaml
