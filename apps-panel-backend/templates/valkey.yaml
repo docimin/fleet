@@ -1,0 +1,68 @@
+{{- if .Values.rateLimitStore.enabled }}
+# Shared rate-limit counters for the backend replicas. Pure cache: no
+# persistence, bounded memory, safe to lose (the backend then counts per
+# replica until it is back).
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.name }}-valkey
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: {{ .Values.name }}-valkey
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.name }}-valkey
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999
+        runAsGroup: 999
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: valkey
+          image: {{ .Values.rateLimitStore.image }}
+          args:
+            - --save
+            - ""
+            - --appendonly
+            - "no"
+            - --maxmemory
+            - {{ .Values.rateLimitStore.maxMemory | quote }}
+            - --maxmemory-policy
+            - allkeys-lru
+          ports:
+            - containerPort: 6379
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          readinessProbe:
+            tcpSocket:
+              port: 6379
+            periodSeconds: 5
+          livenessProbe:
+            tcpSocket:
+              port: 6379
+            periodSeconds: 20
+          resources:
+            {{- toYaml .Values.rateLimitStore.resources | nindent 12 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.name }}-valkey
+spec:
+  selector:
+    app: {{ .Values.name }}-valkey
+  ports:
+    - protocol: TCP
+      port: 6379
+      targetPort: 6379
+{{- end }}

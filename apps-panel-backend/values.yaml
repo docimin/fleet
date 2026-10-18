@@ -61,6 +61,19 @@ secrets:
   imagePullSecrets:
     - name: harbor-secret
 
+# Shared sliding-window counters for the rate limiter, so two replicas don't
+# each allow the full limit. Off = per-replica in-memory counting.
+rateLimitStore:
+  enabled: true
+  image: valkey/valkey:8.1-alpine
+  maxMemory: 64mb
+  resources:
+    requests:
+      cpu: 10m
+      memory: 32Mi
+    limits:
+      memory: 128Mi
+
 resources:
   limits:
     memory: "1Gi"
