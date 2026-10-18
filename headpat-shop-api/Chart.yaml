@@ -1,6 +1,0 @@
-apiVersion: v2
-name: headpat-shop-api
-description: headpat.shop API backend
-type: application
-version: 0.1.0
-appVersion: "0.1.0"
