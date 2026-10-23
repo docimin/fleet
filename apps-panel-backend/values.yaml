@@ -4,7 +4,7 @@ name: apps-panel-backend
 
 image:
   repository: harbor.fayevr.dev/fleet/apps-panel-backend
-  tag: "0.19.230"
+  tag: "0.19.231"
   pullPolicy: Always
 
 service:
@@ -123,11 +123,14 @@ pdb:
   minAvailable: 1
 
 # The spread is hard so two replicas can never share a node, the anti-affinity
-# is only a preference so it never blocks scheduling.
+# is only a preference so it never blocks scheduling. Honor leaves tainted
+# (down or cordoned) nodes out of the count; otherwise a dead node blocks the
+# replacement pod and any rollout until it comes back.
 topologySpreadConstraints:
   - maxSkew: 1
     topologyKey: kubernetes.io/hostname
     whenUnsatisfiable: DoNotSchedule
+    nodeTaintsPolicy: Honor
     labelSelector:
       matchLabels:
         app: apps-panel-backend
