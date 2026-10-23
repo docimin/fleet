@@ -80,7 +80,7 @@ resources:
     cpu: "2000m"
   requests:
     memory: "512Mi"
-    cpu: "200m"
+    cpu: "100m"
 
 podAnnotations:
   prometheus.io/scrape: "true"

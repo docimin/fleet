@@ -36,7 +36,7 @@ dashboard:
       cpu: "500m"
     requests:
       memory: "256Mi"
-      cpu: "100m"
+      cpu: "25m"
 
 service:
   type: ClusterIP
