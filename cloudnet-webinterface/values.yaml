@@ -36,8 +36,8 @@ resources:
     memory: "1Gi"
     cpu: "2"
   requests:
-    memory: "512Mi"
-    cpu: "250m"
+    memory: "128Mi"
+    cpu: "50m"
 
 podAnnotations:
   prometheus.io/scrape: "true"
