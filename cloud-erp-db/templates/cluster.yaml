@@ -6,6 +6,9 @@ spec:
   instances: {{ .Values.cluster.instances }}
   imageName: {{ .Values.cluster.image }}
   primaryUpdateStrategy: unsupervised
+  {{- with .Values.cluster.smartShutdownTimeout }}
+  smartShutdownTimeout: {{ . }}
+  {{- end }}
   enableSuperuserAccess: {{ .Values.cluster.enableSuperuserAccess }}
   storage:
     size: {{ .Values.cluster.storage.size }}

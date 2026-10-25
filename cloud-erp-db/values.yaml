@@ -19,6 +19,10 @@ cluster:
   # CREATE DATABASE / CREATE ROLE per tenant. CNPG only materialises the
   # `<cluster>-superuser` secret when this is true.
   enableSuperuserAccess: true
+  # A primary that CNPG's isolation check shuts down (it fires while any peer
+  # is unreachable, e.g. during a node reboot) otherwise waits the 180 s
+  # default for idle clients before the failover can start.
+  smartShutdownTimeout: 30
   resources:
     limits:
       cpu: "1000m"
