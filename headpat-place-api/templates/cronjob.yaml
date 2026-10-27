@@ -14,6 +14,9 @@ spec:
   jobTemplate:
     spec:
       backoffLimit: 2
+      # A failed run keeps its logs for an hour, then goes, so a one-off blip
+      # doesn't leave KubeJobFailed firing until someone deletes the job.
+      ttlSecondsAfterFinished: 3600
       template:
         metadata:
           labels:
