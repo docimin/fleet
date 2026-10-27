@@ -56,6 +56,10 @@ spec:
             - name: RATE_LIMIT_REDIS_URL
               value: redis://{{ .Values.name }}-valkey:6379
             {{- end }}
+            {{- range $k, $v := .Values.env }}
+            - name: {{ $k }}
+              value: {{ $v | quote }}
+            {{- end }}
           envFrom:
             - secretRef:
                 name: {{ if .Values.externalSecret.enabled }}{{ .Values.externalSecret.targetSecretName }}{{ else }}{{ .Values.secrets.name }}{{ end }}

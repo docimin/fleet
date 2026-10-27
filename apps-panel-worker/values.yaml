@@ -8,7 +8,7 @@ name: apps-panel-worker
 
 image:
   repository: harbor.fayevr.dev/fleet/apps-panel-worker
-  tag: "0.19.248"
+  tag: "0.19.249"
   pullPolicy: Always
 
 # Reuse the backend's env secret — the worker needs the same DATABASE_URL,
@@ -45,6 +45,7 @@ podAnnotations: {}
 env:
   STORAGE_WORKER_ENABLED: "1"
   LOG_LEVEL: "info"
+  ADMIN_ALERT_EMAIL: "security@headpat.space"
 
 # Reuse the SA created by the apps-panel-backend chart in the same namespace.
 # That SA has the narrow apps-panel-cluster + apps-panel-tenant bindings the

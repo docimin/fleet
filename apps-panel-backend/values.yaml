@@ -4,7 +4,7 @@ name: apps-panel-backend
 
 image:
   repository: harbor.fayevr.dev/fleet/apps-panel-backend
-  tag: "0.19.248"
+  tag: "0.19.249"
   pullPolicy: Always
 
 service:
@@ -60,6 +60,11 @@ secrets:
   name: apps-panel-backend-env
   imagePullSecrets:
     - name: harbor-secret
+
+# Inline env for non-secret settings; entries override identically-named keys
+# from the secret via envFrom. Keep secrets in Vault, not here.
+env:
+  ADMIN_ALERT_EMAIL: "security@headpat.space"
 
 # Shared sliding-window counters for the rate limiter, so two replicas don't
 # each allow the full limit. Off = per-replica in-memory counting.
