@@ -114,10 +114,13 @@ pdb:
 # hard constraint: 3 nodes and 2 replicas stays satisfiable even with a node
 # down. The anti-affinity is only a preference - it keeps the panel's
 # components off a single node without ever blocking a pod from starting.
+# Honor leaves tainted (down or cordoned) nodes out of the count; otherwise a
+# dead node blocks the replacement pod and any rollout until it comes back.
 topologySpreadConstraints:
   - maxSkew: 1
     topologyKey: kubernetes.io/hostname
     whenUnsatisfiable: DoNotSchedule
+    nodeTaintsPolicy: Honor
     labelSelector:
       matchLabels:
         app: apps-panel-frontend
