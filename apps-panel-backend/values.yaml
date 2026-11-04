@@ -4,7 +4,7 @@ name: apps-panel-backend
 
 image:
   repository: harbor.fayevr.dev/fleet/apps-panel-backend
-  tag: "0.19.276"
+  tag: "0.19.277"
   pullPolicy: Always
 
 service:
@@ -74,6 +74,7 @@ secrets:
 # from the secret via envFrom. Keep secrets in Vault, not here.
 env:
   ADMIN_ALERT_EMAIL: "security@headpat.space"
+  BILLING_COPY_EMAIL: "billing@headpat.space"
   GAME_HTTPS_DOMAIN: "amongus.headpat.games"
 
 # Shared sliding-window counters for the rate limiter, so two replicas don't
