@@ -1,0 +1,27 @@
+# Installed by hand like the apps-panel releases (not through Argo: the chart
+# generates _APP_OPENSSL_KEY_V1 itself on first install):
+#   helm upgrade --install appwrite oci://ghcr.io/appwrite/charts/appwrite \
+#     --version 2.1.0 -n appwrite --create-namespace -f values.yaml --wait --timeout 15m
+appwrite:
+  domain: dash.fayevr.dev
+  domainTargets:
+    cname: dash.fayevr.dev
+    a: 77.90.16.40
+  certificatesEmail: dominic@headpat.space
+  routerProtection: true
+
+ingress:
+  enabled: true
+  className: traefik
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+  tls:
+    enabled: true
+  # *.functions.dash.fayevr.dev and *.sites.dash.fayevr.dev; the wildcard
+  # certificate needs the DNS-01 issuer.
+  wildcard:
+    enabled: true
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+    tls:
+      enabled: true
