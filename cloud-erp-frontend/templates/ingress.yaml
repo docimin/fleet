@@ -1,12 +1,19 @@
 {{- if .Values.ingress.enabled }}
+{{- $middlewares := list }}
+{{- range $i, $r := .Values.redirectHosts }}
+{{- $middlewares = append $middlewares (printf "%s-%s-redirect-host-%d@kubernetescrd" $.Release.Namespace $.Values.name $i) }}
+{{- end }}
+{{- if .Values.httpsRedirect.enabled }}
+{{- $middlewares = append $middlewares (printf "%s-%s-redirect-https@kubernetescrd" .Release.Namespace .Values.name) }}
+{{- end }}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: {{ .Values.name }}-ingress
   annotations:
     {{- toYaml .Values.ingress.annotations | nindent 4 }}
-    {{- if .Values.httpsRedirect.enabled }}
-    traefik.ingress.kubernetes.io/router.middlewares: {{ printf "%s-%s-redirect-https@kubernetescrd" .Release.Namespace .Values.name }}
+    {{- if $middlewares }}
+    traefik.ingress.kubernetes.io/router.middlewares: {{ join "," $middlewares }}
     {{- end }}
 spec:
   ingressClassName: {{ .Values.ingress.className }}
@@ -28,6 +35,26 @@ spec:
                   number: {{ .port | default $.Values.service.port }}
           {{- end }}
     {{- end }}
+    {{- range .Values.redirectHosts }}
+    # Never reaches the Service: the redirect-host middleware answers first.
+    - host: {{ .host }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ printf "%s-service" $.Values.name }}
+                port:
+                  number: {{ $.Values.service.port }}
+    {{- end }}
   tls:
-    {{- toYaml .Values.ingress.tls | nindent 4 }}
+    {{- with .Values.ingress.tls }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+    {{- range .Values.redirectHosts }}
+    - hosts:
+        - {{ .host }}
+      secretName: {{ .secretName }}
+    {{- end }}
 {{- end }}

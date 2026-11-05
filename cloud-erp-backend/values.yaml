@@ -16,15 +16,25 @@ ingress:
   enabled: true
   className: "traefik"
   annotations:
-    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    # HTTP-01: uhr.works is not on Cloudflare, so the DNS-01 issuer cannot answer for it.
+    cert-manager.io/cluster-issuer: "letsencrypt-prod-http01"
+  # api-erp.headpat.dev keeps answering: bearer-key and webhook callers carry no cookie,
+  # so the cookie domain does not matter to them.
   hosts:
-    - host: api.cloud-erp.dev
+    - host: api.uhr.works
+      paths:
+        - path: "/"
+          pathType: Prefix
+    - host: api-erp.headpat.dev
       paths:
         - path: "/"
           pathType: Prefix
   tls:
     - hosts:
-        - api.cloud-erp.dev
+        - api.uhr.works
+      secretName: cloud-erp-backend-uhr-tls
+    - hosts:
+        - api-erp.headpat.dev
       secretName: cloud-erp-backend-tls-secret
 
 # External Secrets Operator pulls the backend's runtime env

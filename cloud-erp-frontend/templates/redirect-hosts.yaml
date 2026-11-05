@@ -1,0 +1,12 @@
+{{- range $i, $r := .Values.redirectHosts }}
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: {{ $.Values.name }}-redirect-host-{{ $i }}
+spec:
+  redirectRegex:
+    regex: {{ printf "^https?://%s/(.*)" (replace "." "\\." $r.host) | quote }}
+    replacement: {{ printf "https://%s/${1}" $r.to | quote }}
+    permanent: true
+{{- end }}

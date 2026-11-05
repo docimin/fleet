@@ -4,7 +4,7 @@ name: cloud-erp-frontend
 
 image:
   repository: harbor.fayevr.dev/fleet/cloud-erp-frontend
-  tag: "0.0.32"
+  tag: "0.0.33"
   pullPolicy: Always
 
 service:
@@ -16,9 +16,10 @@ ingress:
   enabled: true
   className: "traefik"
   annotations:
-    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    # HTTP-01: uhr.works is not on Cloudflare, so the DNS-01 issuer cannot answer for it.
+    cert-manager.io/cluster-issuer: "letsencrypt-prod-http01"
   hosts:
-    - host: app.cloud-erp.dev
+    - host: erp.uhr.works
       paths:
         # /api routed to the backend Service so the frontend can call
         # same-origin — keeps auth cookies first-party and avoids CORS.
@@ -30,8 +31,16 @@ ingress:
           pathType: Prefix
   tls:
     - hosts:
-        - app.cloud-erp.dev
-      secretName: cloud-erp-frontend-tls
+        - erp.uhr.works
+      secretName: cloud-erp-frontend-uhr-tls
+
+# Old hostnames, answered with a permanent redirect to `to` with the path kept. A served
+# frontend there would call api.uhr.works cross-site, and the strict session cookies
+# would not travel.
+redirectHosts:
+  - host: erp.headpat.dev
+    to: erp.uhr.works
+    secretName: cloud-erp-frontend-tls
 
 # ESO pulls runtime env (any Sentry / branding vars) from the configured
 # store. Most frontend env is baked at build time via VITE_*, but a few
