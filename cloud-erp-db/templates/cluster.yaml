@@ -6,6 +6,8 @@ spec:
   instances: {{ .Values.cluster.instances }}
   imageName: {{ .Values.cluster.image }}
   primaryUpdateStrategy: unsupervised
+  # Promote an updated replica first instead of restarting the primary in place.
+  primaryUpdateMethod: switchover
   {{- with .Values.cluster.smartShutdownTimeout }}
   smartShutdownTimeout: {{ . }}
   {{- end }}
@@ -26,6 +28,10 @@ spec:
       max_worker_processes: "32"
   resources:
     {{- toYaml .Values.cluster.resources | nindent 4 }}
+  {{- with .Values.cluster.affinity }}
+  affinity:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
 {{- if .Values.backup.enabled }}
   plugins:
     - name: barman-cloud.cloudnative-pg.io

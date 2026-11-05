@@ -59,13 +59,14 @@ secrets:
   imagePullSecrets:
     - name: harbor-secret
 
+# CPU: throttled in 20% of its periods at 1 core / 50m (7 days to 2026-11-05).
 resources:
   limits:
     memory: "1Gi"
-    cpu: "1000m"
+    cpu: "2000m"
   requests:
     memory: "512Mi"
-    cpu: "50m"
+    cpu: "250m"
 
 podAnnotations:
   prometheus.io/scrape: "true"

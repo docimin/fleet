@@ -17,13 +17,18 @@ cluster:
   # Control plane never runs CREATE DATABASE — no superuser needed. The
   # owner role (erp) has full DDL on mgmt + marketplace for migrations.
   enableSuperuserAccess: false
+  # CPU peaked at 0.53 against a 0.5-core limit (7 days to 2026-11-05).
   resources:
     limits:
-      cpu: "500m"
+      cpu: "1000m"
       memory: 512Mi
     requests:
-      cpu: "50m"
+      cpu: "200m"
       memory: 128Mi
+  affinity:
+    enablePodAntiAffinity: true
+    podAntiAffinityType: required
+    topologyKey: kubernetes.io/hostname
 
 backup:
   enabled: true

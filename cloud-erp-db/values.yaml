@@ -23,13 +23,19 @@ cluster:
   # is unreachable, e.g. during a node reboot) otherwise waits the 180 s
   # default for idle clients before the failover can start.
   smartShutdownTimeout: 30
+  # CPU peaked at 0.93 of 1 core (7 days to 2026-11-05).
   resources:
     limits:
-      cpu: "1000m"
+      cpu: "2000m"
       memory: 1Gi
     requests:
-      cpu: "100m"
+      cpu: "250m"
       memory: 256Mi
+  # One instance per node: two on one node made that node a single point of failure.
+  affinity:
+    enablePodAntiAffinity: true
+    podAntiAffinityType: required
+    topologyKey: kubernetes.io/hostname
 
 # Streaming replicas cover node and disk loss, not a bad migration or a DROP -
 # that damage reaches every replica instantly. WAL archiving plus a daily base

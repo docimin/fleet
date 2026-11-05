@@ -34,13 +34,14 @@ secrets:
   imagePullSecrets:
     - name: harbor-secret
 
+# CPU: throttled in 16% of its periods at 1 core / 100m (7 days to 2026-11-05).
 resources:
   limits:
     memory: "1Gi"
-    cpu: "1000m"
+    cpu: "2000m"
   requests:
     memory: "256Mi"
-    cpu: "100m"
+    cpu: "200m"
 
 probes:
   liveness:
