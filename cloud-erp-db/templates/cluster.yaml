@@ -26,6 +26,9 @@ spec:
       wal_level: logical
       max_replication_slots: "32"
       max_worker_processes: "32"
+      {{- with .Values.cluster.maxSlotWalKeepSize }}
+      max_slot_wal_keep_size: {{ . | quote }}
+      {{- end }}
   resources:
     {{- toYaml .Values.cluster.resources | nindent 4 }}
   {{- with .Values.cluster.affinity }}

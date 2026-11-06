@@ -17,6 +17,9 @@ cluster:
   # Control plane never runs CREATE DATABASE — no superuser needed. The
   # owner role (erp) has full DDL on mgmt + marketplace for migrations.
   enableSuperuserAccess: false
+  # A standby stuck on an old timeline keeps an inactive slot that otherwise
+  # retains WAL without limit (apps-panel-db: 17 GB in four days, 2026-11-06).
+  maxSlotWalKeepSize: 2GB
   # CPU peaked at 0.53 against a 0.5-core limit (7 days to 2026-11-05).
   resources:
     limits:

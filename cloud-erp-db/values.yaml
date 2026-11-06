@@ -23,6 +23,9 @@ cluster:
   # is unreachable, e.g. during a node reboot) otherwise waits the 180 s
   # default for idle clients before the failover can start.
   smartShutdownTimeout: 30
+  # A standby stuck on an old timeline keeps an inactive slot that otherwise
+  # retains WAL without limit (apps-panel-db: 17 GB in four days, 2026-11-06).
+  maxSlotWalKeepSize: 4GB
   # CPU peaked at 0.93 of 1 core (7 days to 2026-11-05).
   resources:
     limits:
