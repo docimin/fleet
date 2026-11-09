@@ -20,9 +20,10 @@ spec:
             pathType: {{ .pathType }}
             backend:
               service:
-                name: {{ $.Values.name }}-service
+                # A path can name another Service (the realtime consoles).
+                name: {{ .service | default (printf "%s-service" $.Values.name) }}
                 port:
-                  number: {{ $.Values.service.port }}
+                  number: {{ .port | default $.Values.service.port }}
           {{- end }}
     {{- end }}
   tls:

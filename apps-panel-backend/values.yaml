@@ -4,7 +4,7 @@ name: apps-panel-backend
 
 image:
   repository: harbor.fayevr.dev/fleet/apps-panel-backend
-  tag: "0.19.295"
+  tag: "0.19.296"
   pullPolicy: Always
 
 service:
@@ -28,6 +28,12 @@ ingress:
   hosts:
     - host: api.headpat.space
       paths:
+        # Console websockets run in apps-panel-realtime, so backend deploys
+        # don't cut open sessions.
+        - path: "/api/console"
+          pathType: Prefix
+          service: apps-panel-realtime-service
+          port: 80
         - path: "/api"
           pathType: Prefix
         # Public API reference. Routed separately because everything else on this

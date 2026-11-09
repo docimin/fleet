@@ -1,0 +1,85 @@
+# apps-panel-realtime - the VM, game server and app console websockets. Same
+# source tree as the backend, own image (backend/Dockerfile.realtime). It runs
+# apart from the backend so API deploys never cut an open console; the Ingress
+# sends /api/console/* here on every panel hostname.
+replicaCount: 2
+
+name: apps-panel-realtime
+
+image:
+  repository: harbor.fayevr.dev/fleet/apps-panel-realtime
+  tag: "0.19.296"
+  pullPolicy: Always
+
+# Same env as the backend: DATABASE_URL, BETTER_AUTH_SECRET (console tokens),
+# ENCRYPTION_KEY (cluster credentials), Wings and Proxmox access.
+externalSecret:
+  enabled: true
+  refreshInterval: "5m"
+  storeRef:
+    kind: ClusterSecretStore
+    name: vault-apps-panel
+  remoteRef:
+    key: apps-panel/backend-env
+  targetSecretName: apps-panel-realtime-env
+
+secrets:
+  name: apps-panel-realtime-env
+  imagePullSecrets:
+    - name: harbor-secret
+
+env:
+  LOG_LEVEL: "info"
+  # The backend's counters, so a console flood is limited across both services.
+  RATE_LIMIT_REDIS_URL: "redis://apps-panel-backend-valkey:6379"
+
+# The backend chart's SA: the app console execs into pods on the panel's own
+# cluster with in-cluster credentials.
+serviceAccount:
+  name: apps-panel
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8787
+
+# A pod being replaced stops taking new consoles but keeps the open ones
+# running until they close, for at most this long. Draining a node waits for
+# it too; pass --grace-period to kubectl drain to cut it short.
+terminationGracePeriodSeconds: 21600
+
+resources:
+  limits:
+    memory: "512Mi"
+    cpu: "1000m"
+  requests:
+    memory: "128Mi"
+    cpu: "50m"
+
+probes:
+  liveness:
+    path: "/health"
+    initialDelaySeconds: 20
+    periodSeconds: 15
+    timeoutSeconds: 5
+    failureThreshold: 5
+  readiness:
+    path: "/health/ready"
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+
+pdb:
+  enabled: true
+  minAvailable: 1
+
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          topologyKey: kubernetes.io/hostname
+          labelSelector:
+            matchLabels:
+              app: apps-panel-realtime

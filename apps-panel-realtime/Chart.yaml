@@ -1,0 +1,5 @@
+apiVersion: v2
+name: apps-panel-realtime
+description: Hosting panel console websockets (VM, game server and app consoles)
+version: 0.1.0
+type: application
