@@ -1,0 +1,68 @@
+replicaCount: 1
+
+name: cloud-erp-realtime
+
+# Same image as the API: the split is which paths the ingress sends here, not a
+# separate build. The tag moves on its own, and only when the sockets need it: a
+# change to routes/ws.ts, lib/boards, lib/realtime-hub.ts, the session check
+# (middleware/auth.ts, lib/auth.ts, better-auth) or the board document format.
+image:
+  repository: harbor.fayevr.dev/fleet/cloud-erp-backend
+  tag: "0.0.41"
+  pullPolicy: Always
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8787
+
+# Shares the API host: the browser opens its sockets on the baked-in backend URL,
+# and the session cookies are bound to that host. Traefik prefers the longer path
+# over the API's "/". The certificate is the API ingress's; no issuer annotation
+# here, or cert-manager would order a second one for the same name.
+ingress:
+  className: "traefik"
+  host: api.uhr.works
+  path: /ws
+  tlsSecretName: cloud-erp-backend-uhr-tls
+
+# Same runtime env as the API, from the same Vault path.
+externalSecret:
+  enabled: true
+  refreshInterval: "5m"
+  storeRef:
+    kind: ClusterSecretStore
+    name: vault-cloud-erp
+  remoteRef:
+    key: vault-cloud-erp/backend
+  targetSecretName: cloud-erp-realtime
+
+secrets:
+  name: cloud-erp-realtime
+  imagePullSecrets:
+    - name: harbor-secret
+
+# Memory: the process loads the whole API (about 430Mi idle on the API pod).
+resources:
+  limits:
+    memory: "1Gi"
+    cpu: "1000m"
+  requests:
+    memory: "448Mi"
+    cpu: "100m"
+
+probes:
+  liveness:
+    path: "/api/v1/health"
+    initialDelaySeconds: 15
+    periodSeconds: 10
+    timeoutSeconds: 3
+    failureThreshold: 3
+    successThreshold: 1
+  readiness:
+    path: "/api/v1/health"
+    initialDelaySeconds: 3
+    periodSeconds: 3
+    timeoutSeconds: 3
+    failureThreshold: 3
+    successThreshold: 1

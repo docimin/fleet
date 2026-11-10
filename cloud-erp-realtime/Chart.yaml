@@ -1,0 +1,5 @@
+apiVersion: v2
+name: cloud-erp-realtime
+description: Cloud ERP realtime tier - the websockets (/ws), so an API rollout does not drop them
+version: 0.1.0
+type: application

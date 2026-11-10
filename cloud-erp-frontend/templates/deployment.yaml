@@ -42,6 +42,12 @@ spec:
               value: {{ .Values.service.targetPort | quote }}
             - name: HOSTNAME
               value: "0.0.0.0"
+          # Traefik keeps sending to a pod for a moment after it is told to stop; the pause lets
+          # the endpoint change land first, so a rollout does not answer 502.
+          lifecycle:
+            preStop:
+              sleep:
+                seconds: 5
           envFrom:
             - secretRef:
                 name: {{ if .Values.externalSecret.enabled }}{{ .Values.externalSecret.targetSecretName }}{{ else }}{{ .Values.secrets.name }}{{ end }}
