@@ -1,0 +1,91 @@
+{{- $k := .Values.keep }}
+{{- $nodes := .Values.floatingIps.nodes }}
+{{- $members := list }}
+{{- range $i, $n := $nodes }}
+{{- $members = append $members (printf "%d@%s:%d/%s:%d/%d" (add $i 1) $n.internalIp (int $k.clientPort) $n.internalIp (int $k.peerPort) (int $k.shards)) }}
+{{- end }}
+# Stalwart Keep: the in-memory store and cluster coordinator, one member per
+# node on the host network. Members are addressed by node IP, so the member id
+# comes from the node a pod lands on, not from a pod ordinal. It binds only
+# the internal network.
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: {{ .Release.Name }}-keep
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: keep
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  updateStrategy:
+    rollingUpdate:
+      maxUnavailable: 1
+  minReadySeconds: 1
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: keep
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      enableServiceLinks: false
+      terminationGracePeriodSeconds: 16
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 2000
+        runAsGroup: 2000
+        fsGroup: 2000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: keep
+          image: {{ $k.image }}
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              set -eu
+              case "$NODE_IP" in
+              {{- range $i, $n := $nodes }}
+                {{ $n.internalIp }}) id={{ add $i 1 }} ;;
+              {{- end }}
+                *) echo "keep: no member id for node $NODE_IP" >&2; exit 1 ;;
+              esac
+              exec keep --config /dev/null --node "$id" \
+                --members "{{ join "," $members }}" \
+                --listen "$NODE_IP:{{ $k.clientPort }}" --peer-listen "$NODE_IP:{{ $k.peerPort }}" \
+                --shards {{ $k.shards }} \
+                --tls rpk --tls-key "/secrets/member-$id.key" \
+                --tls-clients /secrets/clients.pem --tls-servers /secrets/servers.pem \
+                --secret-file /secrets/cluster_secret --peer-secret-file /secrets/peer_secret \
+                --ready-file /run/keep/settled --stats-interval 300
+          env:
+            - name: NODE_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+          readinessProbe:
+            exec:
+              command: ["test", "-e", "/run/keep/settled"]
+            periodSeconds: 2
+          resources:
+            {{- toYaml $k.resources | nindent 12 }}
+          volumeMounts:
+            - name: secrets
+              mountPath: /secrets
+              readOnly: true
+            - name: run
+              mountPath: /run/keep
+      volumes:
+        - name: secrets
+          secret:
+            secretName: {{ .Release.Name }}-keep
+            defaultMode: 0440
+        - name: run
+          emptyDir:
+            medium: Memory

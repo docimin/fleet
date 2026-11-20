@@ -4,19 +4,27 @@
 #   kubectl label namespace stalwart pod-security.kubernetes.io/enforce=privileged
 #   helm upgrade --install stalwart ./stalwart -n stalwart -f stalwart/values.yaml
 #
-# The mail IPs are configured on `node`'s public interface and Stalwart runs
-# there on the host network, binding them itself for its listeners and as the
-# source of outbound SMTP, so reverse DNS and SPF always match. Listeners,
-# hostname, TLS (built-in ACME) and the license live in the database and are
-# managed through the web UI or API; config.json only points at the database.
+# A cluster of one Stalwart pod per node on the host network. Each node owns
+# one floating mail IP pair (keepalived, see floatingIps) and every pod binds
+# all of them (ip_nonlocal_bind), so a node serves any IP it holds. Outbound
+# SMTP leaves from the node's own mail IP through a host nftables SNAT rule,
+# matching its reverse DNS. Pods share PostgreSQL and coordinate through
+# Stalwart Keep. Listeners, hostname, TLS (built-in ACME), the in-memory store
+# and the license live in the database and are managed through the web UI or
+# API; config.json only points at the database.
+#
+# Host setup per node (outside this chart): /etc/sysctl.d/90-stalwart.conf
+# (ip_nonlocal_bind), /etc/nftables.d/91-stalwart-egress.nft with
+# nft-stalwart-egress.service, and drops for 8090, 7000, 7100 and VRRP on the
+# public interface in /etc/nftables.d/90-hardening.nft.
 
 image:
   repository: stalwartlabs/stalwart
   tag: "v1.1.1"
   pullPolicy: IfNotPresent
 
-# kubernetes.io/hostname of the node that holds the mail IPs.
-node: kb-a-1
+# Stalwart pods, at most one per node.
+replicas: 3
 
 # The management listener port. 8080 is taken on every node by ceph-csi's
 # host-network plugin, so it must be moved off the default.
@@ -39,7 +47,7 @@ resources:
     memory: 1Gi
 
 database:
-  instances: 2
+  instances: 3
   imageName: ghcr.io/cloudnative-pg/postgresql:18.3-system-trixie
   size: 20Gi
   storageClass: ceph-rbd-kubernetes
@@ -54,12 +62,16 @@ database:
 #   envKey: STALWART_RECOVERY_ADMIN (user:password), STALWART_LICENSE_KEY,
 #           STALWART_METRICS_USERNAME, STALWART_METRICS_PASSWORD
 #   s3Key:  ACCESS_KEY_ID, ACCESS_SECRET_KEY
+#   harborPullKey: dockerconfigjson (pull access to the private Harbor images)
+#   keepKey: cluster_secret, peer_secret, member-N.key, servers.pem, client.key, clients.pem
 externalSecret:
   storeRef:
     name: vault
     kind: ClusterSecretStore
   envKey: stalwart/env
   s3Key: stalwart/s3-backup-credentials
+  harborPullKey: stalwart/harbor-pull
+  keepKey: stalwart/keep
   refreshInterval: 1h
 
 # Prometheus scraping (Stalwart and its database), blackbox probes and alert
@@ -71,3 +83,46 @@ monitoring:
     - https://mail.hpat.email/
     - https://mta-sts.hpat.email/.well-known/mta-sts.txt
   queueBacklogThreshold: 50
+
+# Floating mail IPs. Each node is home for one IPv4/IPv6 pair and holds it
+# while its Stalwart is ready; keepalived moves it to a ready node otherwise.
+# VRRP adverts run unicast over the internal network.
+floatingIps:
+  image: harbor.fayevr.dev/fleet/keepalived:2.3.1
+  vrrpInterface: eth1
+  publicInterface: eth0
+  # Seconds keepalived waits before its first election. Longer than the
+  # readiness check needs to fail (3 x 2s) or pass (2 x 2s).
+  startupDelaySeconds: 8
+  nodes:
+    - name: kb-a-1
+      internalIp: 10.0.10.5
+      ipv4: 77.90.16.41
+      ipv6: 2a14:7c0:7000:b00::41
+      virtualRouterId: 41
+    - name: kb-a-2
+      internalIp: 10.0.10.4
+      ipv4: 77.90.16.42
+      ipv6: 2a14:7c0:7000:b00::42
+      virtualRouterId: 42
+    - name: kb-a-3
+      internalIp: 10.0.10.3
+      ipv4: 77.90.16.43
+      ipv6: 2a14:7c0:7000:b00::43
+      virtualRouterId: 43
+
+# Stalwart Keep, the cluster's in-memory store and coordinator (one member
+# per node, members taken from floatingIps.nodes). shards must match the CPU
+# limit; requests equal limits as Keep expects.
+keep:
+  image: stalwartlabs/keep:v1.0.1
+  clientPort: 7000
+  peerPort: 7100
+  shards: 1
+  resources:
+    requests:
+      cpu: "1"
+      memory: 512Mi
+    limits:
+      cpu: "1"
+      memory: 512Mi

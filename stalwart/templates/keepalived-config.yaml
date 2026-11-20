@@ -1,0 +1,78 @@
+{{- $f := .Values.floatingIps }}
+# keepalived moves the mail IPs between nodes. Every node has a home IP and
+# holds it while its Stalwart is ready; otherwise the IP moves to a node whose
+# Stalwart is. Stalwart binds all mail IPs everywhere (ip_nonlocal_bind), so
+# whichever node holds an IP serves it at once.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-keepalived
+data:
+  # name|internalIp|ipv4|ipv6|virtualRouterId, one node per line.
+  nodes: |
+    {{- range $f.nodes }}
+    {{ .name }}|{{ .internalIp }}|{{ .ipv4 }}|{{ .ipv6 }}|{{ .virtualRouterId }}
+    {{- end }}
+  start.sh: |
+    set -eu
+    nodes=$(grep '|' /etc/keepalived-start/nodes)
+    count=$(echo "$nodes" | wc -l)
+    self_index=$(echo "$nodes" | grep -n "^${NODE_NAME}|" | cut -d: -f1)
+    self_ip=$(echo "$nodes" | grep "^${NODE_NAME}|" | cut -d'|' -f2)
+    peers=$(echo "$nodes" | grep -v "^${NODE_NAME}|" | cut -d'|' -f2)
+    conf=/tmp/keepalived.conf
+    cat > "$conf" <<EOF
+    global_defs {
+      router_id ${NODE_NAME}
+      enable_script_security
+      script_user root
+      vrrp_garp_master_delay 1
+      vrrp_garp_master_repeat 3
+      vrrp_garp_master_refresh 60
+      # Let the readiness check settle first, so a node without a ready
+      # Stalwart never wins the first election just by starting earlier.
+      vrrp_startup_delay {{ $f.startupDelaySeconds }}
+    }
+    vrrp_script stalwart_ready {
+      script "/usr/bin/curl -fsS -m 2 -o /dev/null http://127.0.0.1:{{ .Values.managementPort }}/healthz/ready"
+      interval 2
+      fall 3
+      rise 2
+      weight -100
+    }
+    EOF
+    home_index=0
+    echo "$nodes" | while IFS='|' read -r name ip ipv4 ipv6 vrid; do
+      home_index=$((home_index + 1))
+      # The home node wins; the others follow in list order after it.
+      rank=$(( (self_index - home_index + count) % count ))
+      case $rank in 0) prio=150;; 1) prio=110;; *) prio=100;; esac
+      cat >> "$conf" <<EOF
+    vrrp_instance mail_${vrid} {
+      state BACKUP
+      interface {{ $f.vrrpInterface }}
+      virtual_router_id ${vrid}
+      priority ${prio}
+      advert_int 1
+      unicast_src_ip ${self_ip}
+      unicast_peer {
+    $(echo "$peers" | sed 's/^/    /')
+      }
+      authentication {
+        auth_type PASS
+        auth_pass ${KEEPALIVED_AUTH_PASS}
+      }
+      virtual_ipaddress {
+        ${ipv4}/32 dev {{ $f.publicInterface }}
+      }
+      virtual_ipaddress_excluded {
+        ${ipv6}/128 dev {{ $f.publicInterface }} preferred_lft 0
+      }
+      track_script {
+        stalwart_ready
+      }
+    }
+    EOF
+    done
+    keepalived -t -f "$conf"
+    exec keepalived --dont-fork --log-console --log-detail -f "$conf"

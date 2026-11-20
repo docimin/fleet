@@ -1,0 +1,53 @@
+{{- $f := .Values.floatingIps }}
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: {{ .Release.Name }}-keepalived
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: keepalived
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: keepalived
+        app.kubernetes.io/instance: {{ .Release.Name }}
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/keepalived-config.yaml") . | sha256sum }}
+    spec:
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      priorityClassName: system-node-critical
+      imagePullSecrets:
+        - name: harbor-pull
+      terminationGracePeriodSeconds: 10
+      containers:
+        - name: keepalived
+          image: {{ $f.image }}
+          env:
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: KEEPALIVED_AUTH_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-env
+                  key: KEEPALIVED_AUTH_PASS
+          securityContext:
+            capabilities:
+              add: [NET_ADMIN, NET_RAW, NET_BROADCAST]
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              memory: 64Mi
+          volumeMounts:
+            - name: start
+              mountPath: /etc/keepalived-start
+      volumes:
+        - name: start
+          configMap:
+            name: {{ .Release.Name }}-keepalived

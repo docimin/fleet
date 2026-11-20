@@ -4,9 +4,9 @@ metadata:
   name: {{ .Release.Name }}
 spec:
   serviceName: {{ .Release.Name }}
-  # One pod only: the mail IPs live on one node at a time and the old pod must
-  # release the host ports before the next one can bind them.
-  replicas: 1
+  # One pod per node at most: the pods share the host's ports. Every pod binds
+  # all mail IPs; keepalived puts each IP on a node whose pod is ready.
+  replicas: {{ .Values.replicas }}
   selector:
     matchLabels:
       app.kubernetes.io/name: stalwart
@@ -21,8 +21,14 @@ spec:
     spec:
       hostNetwork: true
       dnsPolicy: ClusterFirstWithHostNet
-      nodeSelector:
-        kubernetes.io/hostname: {{ required "node must name the VM the mail IP is bound to" .Values.node }}
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - topologyKey: kubernetes.io/hostname
+              labelSelector:
+                matchLabels:
+                  app.kubernetes.io/name: stalwart
+                  app.kubernetes.io/instance: {{ .Release.Name }}
       terminationGracePeriodSeconds: 60
       securityContext:
         runAsNonRoot: true
@@ -44,11 +50,21 @@ spec:
               drop: [ALL]
               add: [NET_BIND_SERVICE]
           env:
+            # The cluster node id is leased per hostname.
+            - name: STALWART_HOSTNAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
             - name: STALWART_DB_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: {{ .Release.Name }}-db-app
                   key: password
+            - name: STALWART_KEEP_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-keep
+                  key: cluster_secret
             {{- if .Values.recoveryMode.enabled }}
             - name: STALWART_RECOVERY_MODE
               value: "true"
@@ -93,7 +109,20 @@ spec:
               mountPath: /var/log/stalwart
             - name: tmp
               mountPath: /tmp
+            - name: keep
+              mountPath: /etc/stalwart/keep
+              readOnly: true
       volumes:
+        # Stalwart's Keep client key and the members' public keys.
+        - name: keep
+          secret:
+            secretName: {{ .Release.Name }}-keep
+            defaultMode: 0440
+            items:
+              - key: client.key
+                path: client.key
+              - key: servers.pem
+                path: servers.pem
         - name: config
           configMap:
             name: {{ .Release.Name }}-config

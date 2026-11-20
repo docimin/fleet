@@ -57,6 +57,27 @@ spec:
             severity: critical
           annotations:
             summary: Stalwart is not running or cannot be scraped.
+        - alert: StalwartNodeDown
+          expr: count(up{namespace="{{ .Release.Namespace }}", service="{{ .Release.Name }}"} == 1) < {{ .Values.replicas }}
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: Fewer than {{ .Values.replicas }} Stalwart nodes are serving; their mail IPs have moved to the others.
+        - alert: StalwartKeepDegraded
+          expr: kube_daemonset_status_number_ready{namespace="{{ .Release.Namespace }}", daemonset="{{ .Release.Name }}-keep"} < kube_daemonset_status_desired_number_scheduled{namespace="{{ .Release.Namespace }}", daemonset="{{ .Release.Name }}-keep"}
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: A Stalwart Keep member is down; a second loss stops the cluster's locks.
+        - alert: StalwartFloatingIpAgentDown
+          expr: kube_daemonset_status_number_ready{namespace="{{ .Release.Namespace }}", daemonset="{{ .Release.Name }}-keepalived"} < kube_daemonset_status_desired_number_scheduled{namespace="{{ .Release.Namespace }}", daemonset="{{ .Release.Name }}-keepalived"}
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: keepalived is not running on every node, so a mail IP may not fail over.
         - alert: StalwartEndpointDown
           expr: probe_success{purpose="stalwart"} == 0
           for: 10m
