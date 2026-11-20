@@ -59,8 +59,9 @@ database:
     schedule: "0 30 3 * * *"
 
 # Vault keys, synced by external-secrets:
-#   envKey: STALWART_RECOVERY_ADMIN (user:password), STALWART_LICENSE_KEY,
-#           STALWART_METRICS_USERNAME, STALWART_METRICS_PASSWORD
+#   envKey: STALWART_LICENSE_KEY, STALWART_API_KEY, STALWART_METRICS_USERNAME,
+#           STALWART_METRICS_PASSWORD, KEEPALIVED_AUTH_PASS; add
+#           STALWART_RECOVERY_ADMIN (user:password) only to recover a lockout
 #   s3Key:  ACCESS_KEY_ID, ACCESS_SECRET_KEY
 #   harborPullKey: dockerconfigjson (pull access to the private Harbor images)
 #   keepKey: cluster_secret, peer_secret, member-N.key, servers.pem, client.key, clients.pem
