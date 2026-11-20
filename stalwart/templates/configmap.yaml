@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-config
+data:
+  config.json: |
+    {{- dict
+      "@type" "PostgreSql"
+      "host" (printf "%s-db-rw.%s.svc.cluster.local" .Release.Name .Release.Namespace)
+      "port" 5432
+      "database" "stalwart"
+      "authUsername" "stalwart"
+      "authSecret" (dict "@type" "EnvironmentVariable" "variableName" "STALWART_DB_PASSWORD")
+      | toPrettyJson | nindent 4 }}

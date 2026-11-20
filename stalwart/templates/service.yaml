@@ -1,0 +1,17 @@
+# Management API, web UI and metrics inside the cluster. Mail listeners bind
+# only the public mail IPs, so in-cluster apps submit through the mail host.
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}
+  labels:
+    app.kubernetes.io/name: stalwart
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  selector:
+    app.kubernetes.io/name: stalwart
+    app.kubernetes.io/instance: {{ .Release.Name }}
+  ports:
+    - name: management
+      port: {{ .Values.managementPort }}
+      targetPort: management

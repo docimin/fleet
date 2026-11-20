@@ -1,0 +1,73 @@
+# Stalwart mail server for our own domains. Installed by hand like the
+# apps-panel releases:
+#   kubectl create namespace stalwart
+#   kubectl label namespace stalwart pod-security.kubernetes.io/enforce=privileged
+#   helm upgrade --install stalwart ./stalwart -n stalwart -f stalwart/values.yaml
+#
+# The mail IPs are configured on `node`'s public interface and Stalwart runs
+# there on the host network, binding them itself for its listeners and as the
+# source of outbound SMTP, so reverse DNS and SPF always match. Listeners,
+# hostname, TLS (built-in ACME) and the license live in the database and are
+# managed through the web UI or API; config.json only points at the database.
+
+image:
+  repository: stalwartlabs/stalwart
+  tag: "v1.1.1"
+  pullPolicy: IfNotPresent
+
+# kubernetes.io/hostname of the node that holds the mail IPs.
+node: kb-a-1
+
+# The management listener port. 8080 is taken on every node by ceph-csi's
+# host-network plugin, so it must be moved off the default.
+managementPort: 8090
+
+# First boot only: comes up with just the management listener on
+# managementPort, so listeners are configured before any default binds the
+# host. Mail and HTTPS listeners bind only the mail IPs; management binds only
+# the node's internal address and localhost.
+recoveryMode:
+  enabled: false
+  logLevel: info
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: "2"
+    memory: 1Gi
+
+database:
+  instances: 2
+  imageName: ghcr.io/cloudnative-pg/postgresql:18.3-system-trixie
+  size: 20Gi
+  storageClass: ceph-rbd-kubernetes
+  backup:
+    destinationPath: s3://k8s-apps/cnpg/stalwart/stalwart-db/
+    endpointURL: https://s3.headpat.space
+    retentionPolicy: 30d
+    # 6-field cron, seconds first.
+    schedule: "0 30 3 * * *"
+
+# Vault keys, synced by external-secrets:
+#   envKey: STALWART_RECOVERY_ADMIN (user:password), STALWART_LICENSE_KEY,
+#           STALWART_METRICS_USERNAME, STALWART_METRICS_PASSWORD
+#   s3Key:  ACCESS_KEY_ID, ACCESS_SECRET_KEY
+externalSecret:
+  storeRef:
+    name: vault
+    kind: ClusterSecretStore
+  envKey: stalwart/env
+  s3Key: stalwart/s3-backup-credentials
+  refreshInterval: 1h
+
+# Prometheus scraping (Stalwart and its database), blackbox probes and alert
+# rules for the kube-prometheus-stack in the monitoring namespace.
+monitoring:
+  enabled: true
+  blackboxProberUrl: blackbox-exporter.monitoring.svc:9115
+  probeTargets:
+    - https://mail.hpat.email/
+    - https://mta-sts.hpat.email/.well-known/mta-sts.txt
+  queueBacklogThreshold: 50

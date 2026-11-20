@@ -1,0 +1,124 @@
+{{- if .Values.monitoring.enabled }}
+{{- $m := .Values.monitoring }}
+# Stalwart serves /metrics/prometheus on every HTTP listener; scraping goes
+# through the management listener with the credentials synced from Vault.
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ .Release.Name }}
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: stalwart
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  endpoints:
+    - port: management
+      path: /metrics/prometheus
+      interval: 60s
+      basicAuth:
+        username:
+          name: {{ .Release.Name }}-env
+          key: STALWART_METRICS_USERNAME
+        password:
+          name: {{ .Release.Name }}-env
+          key: STALWART_METRICS_PASSWORD
+---
+# The database needs no monitor of its own: the cluster-wide
+# monitoring/cnpg-instances PodMonitor already scrapes every CNPG instance.
+apiVersion: monitoring.coreos.com/v1
+kind: Probe
+metadata:
+  name: {{ .Release.Name }}
+spec:
+  module: http_2xx
+  interval: 60s
+  prober:
+    url: {{ $m.blackboxProberUrl }}
+    path: /probe
+  targets:
+    staticConfig:
+      labels:
+        purpose: stalwart
+      static:
+        {{- toYaml $m.probeTargets | nindent 8 }}
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: {{ .Release.Name }}
+spec:
+  groups:
+    - name: stalwart
+      rules:
+        - alert: StalwartDown
+          expr: absent(up{namespace="{{ .Release.Namespace }}", service="{{ .Release.Name }}"} == 1)
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: Stalwart is not running or cannot be scraped.
+        - alert: StalwartEndpointDown
+          expr: probe_success{purpose="stalwart"} == 0
+          for: 10m
+          labels:
+            severity: critical
+          annotations:
+            summary: "{{ "{{ $labels.instance }}" }} is unreachable from inside the cluster."
+        - alert: StalwartCertificateExpiring
+          # Stalwart renews at two thirds of the lifetime (about 30 days left),
+          # so under 14 days means renewals are failing.
+          expr: probe_ssl_earliest_cert_expiry{purpose="stalwart"} - time() < 14 * 86400
+          for: 1h
+          labels:
+            severity: warning
+          annotations:
+            summary: "The certificate for {{ "{{ $labels.instance }}" }} expires in under 14 days."
+        - alert: StalwartQueueBacklog
+          expr: stalwart_queue_messages{namespace="{{ .Release.Namespace }}"} > {{ $m.queueBacklogThreshold }}
+          for: 30m
+          labels:
+            severity: warning
+          annotations:
+            summary: "{{ "{{ $value }}" }} messages are waiting in the outbound queue."
+        - alert: StalwartDeliveryFailures
+          expr: increase(stalwart_delivery_dsn_perm_fail_total{namespace="{{ .Release.Namespace }}"}[1h]) > 10
+          labels:
+            severity: warning
+          annotations:
+            summary: More than 10 messages bounced permanently in the last hour.
+        - alert: StalwartAuthFailures
+          expr: increase(stalwart_auth_failed_total{namespace="{{ .Release.Namespace }}"}[15m]) > 50
+          labels:
+            severity: warning
+          annotations:
+            summary: More than 50 failed logins in 15 minutes.
+        - alert: StalwartStoreErrors
+          expr: increase(stalwart_store_postgresql_error_total{namespace="{{ .Release.Namespace }}"}[15m]) > 0
+          labels:
+            severity: warning
+          annotations:
+            summary: Stalwart reported PostgreSQL errors.
+        - alert: StalwartDatabaseInstanceDown
+          expr: count(cnpg_collector_up{namespace="{{ .Release.Namespace }}"} == 1) < {{ .Values.database.instances }}
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: Not every instance of {{ .Release.Name }}-db is up.
+        - alert: StalwartDatabaseBackupStale
+          # The barman plugin reports backups under its own metric; CNPG's
+          # cnpg_collector_last_available_backup_timestamp stays at 0 with it.
+          expr: time() - max(barman_cloud_cloudnative_pg_io_last_available_backup_timestamp{namespace="{{ .Release.Namespace }}"}) > 30 * 3600
+          for: 1h
+          labels:
+            severity: warning
+          annotations:
+            summary: The last base backup of {{ .Release.Name }}-db is older than 30 hours.
+        - alert: StalwartDatabaseWalArchiving
+          expr: max(cnpg_collector_pg_wal_archive_status{namespace="{{ .Release.Namespace }}", value="ready"}) > 10 or increase(cnpg_pg_stat_archiver_failed_count{namespace="{{ .Release.Namespace }}"}[15m]) > 0
+          for: 15m
+          labels:
+            severity: critical
+          annotations:
+            summary: WAL archiving for {{ .Release.Name }}-db is failing, so point-in-time recovery is at risk.
+{{- end }}

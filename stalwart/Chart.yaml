@@ -1,0 +1,6 @@
+apiVersion: v2
+name: stalwart
+description: Stalwart mail server for Headpat's own domains
+type: application
+version: 0.1.0
+appVersion: "v1.1.1"
