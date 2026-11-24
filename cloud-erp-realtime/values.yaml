@@ -8,7 +8,7 @@ name: cloud-erp-realtime
 # (middleware/auth.ts, lib/auth.ts, better-auth) or the board document format.
 image:
   repository: harbor.fayevr.dev/fleet/cloud-erp-backend
-  tag: "0.0.41"
+  tag: "0.0.47"
   pullPolicy: Always
 
 service:
