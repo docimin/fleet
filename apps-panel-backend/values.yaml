@@ -4,7 +4,7 @@ name: apps-panel-backend
 
 image:
   repository: harbor.fayevr.dev/fleet/apps-panel-backend
-  tag: "0.19.337"
+  tag: "0.19.338"
   pullPolicy: Always
 
 service:
@@ -82,6 +82,8 @@ env:
   ADMIN_ALERT_EMAIL: "security@headpat.space"
   BILLING_COPY_EMAIL: "billing@headpat.space"
   GAME_HTTPS_DOMAIN: "amongus.headpat.games"
+  # The panel's GA4 stream; purchases go there with GA_API_SECRET from Vault.
+  GA_MEASUREMENT_ID: "G-HD0WD0CZKJ"
 
 # Shared sliding-window counters for the rate limiter, so two replicas don't
 # each allow the full limit. Off = per-replica in-memory counting.
