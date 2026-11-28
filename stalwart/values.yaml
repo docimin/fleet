@@ -113,8 +113,11 @@ floatingIps:
       virtualRouterId: 43
 
 # Stalwart Keep, the cluster's in-memory store and coordinator (one member
-# per node, members taken from floatingIps.nodes). shards must match the CPU
-# limit; requests equal limits as Keep expects.
+# per node, members taken from floatingIps.nodes). Keep sizes its shards from
+# the CPU limit (cgroup cpu.max), so shards must match limits.cpu. The request
+# can sit below it (Keep supports burstable pods with a CPU limit); a member
+# uses ~0.1 CPU, and a full-core request per node held 3 CPUs of the cluster's
+# scheduling headroom for nothing.
 keep:
   image: stalwartlabs/keep:v1.0.1
   clientPort: 7000
@@ -122,7 +125,7 @@ keep:
   shards: 1
   resources:
     requests:
-      cpu: "1"
+      cpu: 250m
       memory: 512Mi
     limits:
       cpu: "1"
